@@ -1,0 +1,25 @@
+# Face Recognition Door Lock System - Requirements
+# Compatible with Python 3.11 on Raspberry Pi
+
+# Computer Vision and MediaPipe
+opencv-python==4.8.1.78
+mediapipe==0.10.7
+
+# Numerical Computing
+numpy==1.24.3
+
+# Raspberry Pi GPIO Control
+RPi.GPIO==0.7.1
+
+# Data Serialization (built-in pickle module used)
+# Threading and Time modules are built-in
+
+# Optional: For better camera performance
+# picamera2  # Uncomment if using Pi Camera module instead of USB camera
+
+# Optional: For system monitoring
+# psutil==5.9.5  # Uncomment if you want to monitor system resources
+
+# Development/Debugging (optional)
+# matplotlib==3.7.2  # For visualization during development
+# pillow==10.0.1  # For image processing utilities
