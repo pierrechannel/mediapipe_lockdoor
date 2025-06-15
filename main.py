@@ -89,18 +89,20 @@ class APIIntegratedFaceDoorLock:
         self.recognition_threshold = 0.6
         self.unlock_duration = 5
         self.last_unlock_time = 0
+        self.auto_registration_mode = False
+        self.pending_registrations = []  # Queue for auto-registration
         
         # Camera
         self.cap = cv2.VideoCapture(0)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         
-        # Load users from API
+        # Load users from API and auto-register
         self.sync_users_from_api()
         
         gpio_status = "enabled" if GPIO_AVAILABLE else "mocked"
         print(f"API-Integrated Face Recognition Door Lock System Initialized (GPIO {gpio_status})")
-        print("Commands: 'r' - Register face, 'q' - Quit, 's' - Show database, 'sync' - Sync with API")
+        print("Commands: 'a' - Auto-register all users, 'q' - Quit, 's' - Show database, 'sync' - Sync with API")
 
     def sync_users_from_api(self):
         """Fetch users from the API and update local cache"""
@@ -113,10 +115,11 @@ class APIIntegratedFaceDoorLock:
                 if data.get('statusCode') == 200 and 'result' in data:
                     users = data['result']['data']
                     
-                    # Update user database
+                    # Update user database and identify new users
+                    new_users = []
                     for user in users:
                         user_id = user['WAREHOUSE_USER_ID']
-                        self.user_database[user_id] = {
+                        user_info = {
                             'id': user_id,
                             'name': f"{user['PRENOM']} {user['NOM']}",
                             'email': user['EMAIL'],
@@ -125,8 +128,20 @@ class APIIntegratedFaceDoorLock:
                             'profile': user.get('profil', {}).get('DESCRIPTION_PROFIL', 'USER'),
                             'date_save': user['DATE_SAVE']
                         }
+                        
+                        # Check if user is new or doesn't have face data
+                        if user_id not in self.user_database or user_id not in self.known_faces:
+                            new_users.append(user_id)
+                        
+                        self.user_database[user_id] = user_info
                     
                     print(f"Synced {len(users)} users from API")
+                    
+                    # Auto-register faces for users with photos
+                    if new_users:
+                        print(f"Found {len(new_users)} users for auto-registration")
+                        self.auto_register_users_from_photos(new_users)
+                    
                     return True
                 else:
                     print(f"API Error: {data.get('message', 'Unknown error')}")
@@ -140,26 +155,173 @@ class APIIntegratedFaceDoorLock:
         
         return False
 
+    def auto_register_users_from_photos(self, user_ids):
+        """Automatically register faces from user photos in the API"""
+        for user_id in user_ids:
+            if user_id in self.user_database:
+                user = self.user_database[user_id]
+                photo_url = user.get('photo')
+                
+                if photo_url and photo_url.strip():
+                    print(f"Auto-registering face for {user['name']} from photo...")
+                    success = self.register_face_from_photo(user_id, photo_url)
+                    if success:
+                        print(f"✓ Successfully registered {user['name']}")
+                    else:
+                        print(f"✗ Failed to register {user['name']} - will need manual registration")
+                        self.pending_registrations.append(user_id)
+                else:
+                    print(f"No photo available for {user['name']} - adding to manual registration queue")
+                    self.pending_registrations.append(user_id)
+
+    def register_face_from_photo(self, user_id, photo_url):
+        """Register face from user's photo URL"""
+        try:
+            # Download photo from URL
+            if photo_url.startswith('data:image'):
+                # Handle base64 encoded images
+                header, data = photo_url.split(',', 1)
+                image_data = base64.b64decode(data)
+                image = Image.open(BytesIO(image_data))
+            else:
+                # Handle URL images
+                response = requests.get(photo_url, timeout=10)
+                if response.status_code != 200:
+                    print(f"Failed to download photo: HTTP {response.status_code}")
+                    return False
+                image = Image.open(BytesIO(response.content))
+            
+            # Convert PIL image to OpenCV format
+            image_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+            
+            # Process image for face detection
+            rgb_image = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
+            results = self.face_mesh.process(rgb_image)
+            
+            if results.multi_face_landmarks:
+                # Use the first detected face
+                face_landmarks = results.multi_face_landmarks[0]
+                features = self.extract_face_features(image_cv, face_landmarks)
+                
+                if len(features) > 0:
+                    # Store the face features
+                    self.known_faces[user_id] = features
+                    self.save_face_database()
+                    return True
+                else:
+                    print(f"Could not extract features from photo for user {user_id}")
+            else:
+                print(f"No face detected in photo for user {user_id}")
+                
+        except Exception as e:
+            print(f"Error processing photo for user {user_id}: {e}")
+        
+        return False
+
+    def start_manual_registration_mode(self):
+        """Start interactive registration for users without photos"""
+        if not self.pending_registrations:
+            print("No users pending manual registration")
+            return
+        
+        print(f"Starting manual registration for {len(self.pending_registrations)} users")
+        print("Press 'n' for next user, 'skip' to skip current user, 'q' to quit registration")
+        
+        self.auto_registration_mode = True
+        self.current_registration_index = 0
+
+    def handle_manual_registration(self, frame):
+        """Handle manual registration during main loop"""
+        if not self.auto_registration_mode or not self.pending_registrations:
+            return frame
+        
+        if self.current_registration_index >= len(self.pending_registrations):
+            print("Manual registration complete!")
+            self.auto_registration_mode = False
+            self.pending_registrations = []
+            return frame
+        
+        user_id = self.pending_registrations[self.current_registration_index]
+        user = self.user_database[user_id]
+        
+        # Draw registration interface
+        cv2.rectangle(frame, (10, 10), (630, 150), (0, 0, 0), -1)
+        cv2.rectangle(frame, (10, 10), (630, 150), (0, 255, 255), 2)
+        
+        cv2.putText(frame, "MANUAL REGISTRATION MODE", 
+                   (20, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        cv2.putText(frame, f"User: {user['name']} ({user_id})", 
+                   (20, 65), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.putText(frame, f"Role: {user['profile']}", 
+                   (20, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.putText(frame, "SPACE: Register face | N: Next | S: Skip | Q: Quit", 
+                   (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+        cv2.putText(frame, f"Progress: {self.current_registration_index + 1}/{len(self.pending_registrations)}", 
+                   (20, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        
+        return frame
+
+    def register_current_user_face(self, frame):
+        """Register face for current user in manual mode"""
+        if not self.auto_registration_mode or not self.pending_registrations:
+            return False
+        
+        user_id = self.pending_registrations[self.current_registration_index]
+        user = self.user_database[user_id]
+        
+        # Process frame for face detection
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.face_mesh.process(rgb_frame)
+        
+        if results.multi_face_landmarks:
+            # Use the first detected face
+            face_landmarks = results.multi_face_landmarks[0]
+            features = self.extract_face_features(frame, face_landmarks)
+            
+            if len(features) > 0:
+                self.known_faces[user_id] = features
+                self.save_face_database()
+                print(f"✓ Face registered for {user['name']}")
+                
+                # Move to next user
+                self.current_registration_index += 1
+                return True
+            else:
+                print("Could not extract face features. Please try again.")
+        else:
+            print("No face detected. Please look at the camera.")
+        
+        return False
+
     def log_access_to_api(self, user_id, image_frame, status=1):
         """Log access attempt to the API"""
         try:
-            # Convert frame to base64 for API upload
-            _, buffer = cv2.imencode('.jpg', image_frame)
-            image_base64 = base64.b64encode(buffer).decode('utf-8')
+            # Convert frame to JPEG image bytes
+            _, buffer = cv2.imencode('.jpg', image_frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
             
-            # Prepare access log data
-            access_data = {
-                'WAREHOUSE_USER_ID': user_id,
-                'IMAGE_DATA': image_base64,  # Base64 encoded image
-                'STATUT': status,  # 1 for success, 0 for failure
+            # Prepare multipart form data
+            files = {
+                'IMAGE': ('access_image.jpg', buffer.tobytes(), 'image/jpeg')
+            }
+            
+            # Prepare form data (non-image fields)
+            data = {
+                'WAREHOUSE_USER_ID': str(user_id),
+                'STATUT': str(status),  # 1 for success, 0 for failure
                 'DATE_SAVE': datetime.now().isoformat()
             }
             
-            # Send to API
+            # Prepare headers for multipart upload (remove Content-Type to let requests set it)
+            upload_headers = self.headers.copy()
+            if 'Content-Type' in upload_headers:
+                del upload_headers['Content-Type']
+            
+            # Send to API with multipart form data
             response = requests.post(
                 f"{self.api_base_url}/warehouse_acces/create", 
-                json=access_data, 
-                headers=self.headers
+                files=files,
+                data=data,
+                headers=upload_headers
             )
             
             if response.status_code == 200:
@@ -167,6 +329,8 @@ class APIIntegratedFaceDoorLock:
                 return True
             else:
                 print(f"Failed to log access: HTTP {response.status_code}")
+                if response.text:
+                    print(f"Response: {response.text}")
                 
         except Exception as e:
             print(f"Error logging access to API: {e}")
@@ -222,65 +386,6 @@ class APIIntegratedFaceDoorLock:
         similarity = dot_product / (norm1 * norm2)
         return max(0.0, similarity)
 
-    def register_face_for_user(self, user_id):
-        """Register a face for an existing user from the API"""
-        if user_id not in self.user_database:
-            print(f"User ID {user_id} not found in database. Please sync with API first.")
-            return False
-        
-        user = self.user_database[user_id]
-        print(f"Registering face for: {user['name']} (ID: {user_id})")
-        print("Look at the camera and press SPACE when ready, ESC to cancel")
-        
-        face_samples = []
-        required_samples = 5
-        
-        while len(face_samples) < required_samples:
-            ret, frame = self.cap.read()
-            if not ret:
-                continue
-                
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = self.face_mesh.process(rgb_frame)
-            
-            # Draw instructions
-            cv2.putText(frame, f"User: {user['name']}", 
-                       (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-            cv2.putText(frame, f"Samples: {len(face_samples)}/{required_samples}", 
-                       (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-            cv2.putText(frame, "SPACE: Capture, ESC: Cancel", 
-                       (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-            
-            if results.multi_face_landmarks:
-                for face_landmarks in results.multi_face_landmarks:
-                    # Draw face mesh
-                    self.mp_drawing.draw_landmarks(
-                        frame, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS)
-                    
-                    key = cv2.waitKey(1) & 0xFF
-                    if key == ord(' '):  # Space to capture
-                        features = self.extract_face_features(frame, face_landmarks)
-                        if len(features) > 0:
-                            face_samples.append(features)
-                            print(f"Sample {len(face_samples)} captured")
-                    elif key == 27:  # ESC to cancel
-                        print("Registration cancelled")
-                        return False
-            
-            cv2.imshow('Register Face', frame)
-            
-            if cv2.waitKey(1) & 0xFF == 27:  # ESC
-                print("Registration cancelled")
-                return False
-        
-        # Average the samples and store with user ID
-        avg_features = np.mean(face_samples, axis=0)
-        self.known_faces[user_id] = avg_features
-        self.save_face_database()
-        
-        print(f"Face registered successfully for {user['name']} (ID: {user_id})")
-        return True
-
     def recognize_face(self, frame):
         """Recognize faces in the frame"""
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -310,12 +415,12 @@ class APIIntegratedFaceDoorLock:
                         
                         # Draw recognition result
                         cv2.putText(frame, f"{user['name']} ({best_similarity:.2f})", 
-                                   (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                                   (50, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
                         cv2.putText(frame, f"Role: {user['profile']}", 
-                                   (50, 130), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                                   (50, 230), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                     else:
                         cv2.putText(frame, "Unknown Person", 
-                                   (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                                   (50, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
                 
                 # Draw face mesh
                 self.mp_drawing.draw_landmarks(
@@ -378,12 +483,17 @@ class APIIntegratedFaceDoorLock:
             print(f"ID: {user_id} | {user['name']} | {user['profile']} | {face_status}")
         
         print(f"\nRegistered Faces: {len(self.known_faces)}")
+        if self.pending_registrations:
+            print(f"Pending Manual Registration: {len(self.pending_registrations)}")
         print()
 
     def run(self):
         """Main loop"""
         print("API-Integrated Face Recognition Door Lock Active")
-        print("Looking for authorized faces...")
+        print("Auto-registration completed. Looking for authorized faces...")
+        
+        if self.pending_registrations:
+            print(f"Note: {len(self.pending_registrations)} users need manual registration. Press 'a' to start.")
         
         try:
             while True:
@@ -395,12 +505,16 @@ class APIIntegratedFaceDoorLock:
                 # Flip frame horizontally for mirror effect
                 frame = cv2.flip(frame, 1)
                 
-                # Recognize faces
-                recognized = self.recognize_face(frame)
-                
-                # Check for authorized access
-                for user_id, user_info, confidence in recognized:
-                    self.unlock_door(user_id, user_info, frame)
+                # Handle manual registration overlay
+                if self.auto_registration_mode:
+                    frame = self.handle_manual_registration(frame)
+                else:
+                    # Normal recognition mode
+                    recognized = self.recognize_face(frame)
+                    
+                    # Check for authorized access
+                    for user_id, user_info, confidence in recognized:
+                        self.unlock_door(user_id, user_info, frame)
                 
                 # Display status
                 status = "LOCKED"
@@ -409,10 +523,16 @@ class APIIntegratedFaceDoorLock:
                     status = "UNLOCKED"
                     status_color = (0, 255, 0)  # Green
                 
-                cv2.putText(frame, f"Status: {status}", 
-                           (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, status_color, 2)
-                cv2.putText(frame, f"Users: {len(self.user_database)} | Faces: {len(self.known_faces)}", 
-                           (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                # Status information
+                if not self.auto_registration_mode:
+                    cv2.putText(frame, f"Status: {status}", 
+                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, status_color, 2)
+                    cv2.putText(frame, f"Users: {len(self.user_database)} | Faces: {len(self.known_faces)}", 
+                               (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                    
+                    if self.pending_registrations:
+                        cv2.putText(frame, f"Pending Registration: {len(self.pending_registrations)}", 
+                                   (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
                 
                 # Show GPIO and API status
                 gpio_text = "GPIO: Real" if GPIO_AVAILABLE else "GPIO: Mock"
@@ -427,17 +547,23 @@ class APIIntegratedFaceDoorLock:
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
                     break
-                elif key == ord('r'):
-                    try:
-                        user_id = int(input("Enter User ID to register face: "))
-                        self.register_face_for_user(user_id)
-                    except ValueError:
-                        print("Please enter a valid numeric User ID")
+                elif key == ord('a') and not self.auto_registration_mode:
+                    self.start_manual_registration_mode()
                 elif key == ord('s'):
                     self.show_database()
                 elif key == ord('1'):  # Sync with API
                     print("Syncing with API...")
                     self.sync_users_from_api()
+                elif self.auto_registration_mode:
+                    if key == ord(' '):  # Space to register face
+                        self.register_current_user_face(frame)
+                    elif key == ord('n'):  # Next user
+                        self.current_registration_index += 1
+                    elif key == ord('S'):  # Skip user (capital S)
+                        print(f"Skipped {self.user_database[self.pending_registrations[self.current_registration_index]]['name']}")
+                        self.current_registration_index += 1
+                    elif key == ord('q'):  # Quit registration
+                        self.auto_registration_mode = False
         
         except KeyboardInterrupt:
             print("\nShutting down...")
