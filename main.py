@@ -10,6 +10,25 @@ from datetime import datetime
 import base64
 from io import BytesIO
 from PIL import Image
+import threading
+
+# TTS imports
+try:
+    import pyttsx3
+    TTS_PYTTSX3_AVAILABLE = True
+    print("pyttsx3 TTS engine available")
+except ImportError:
+    TTS_PYTTSX3_AVAILABLE = False
+    print("pyttsx3 not available - install with: pip install pyttsx3")
+
+try:
+    from gtts import gTTS
+    import pygame
+    TTS_GTTS_AVAILABLE = True
+    print("gTTS engine available")
+except ImportError:
+    TTS_GTTS_AVAILABLE = False
+    print("gTTS not available - install with: pip install gtts pygame")
 
 # Mock GPIO for non-Raspberry Pi systems
 try:
@@ -45,8 +64,174 @@ except (ImportError, RuntimeError):
     
     GPIO = MockGPIO()
 
+class TTSManager:
+    """Handles Text-to-Speech functionality with multiple engines"""
+    
+    def __init__(self, preferred_engine='pyttsx3', language='en'):
+        self.language = language
+        self.preferred_engine = preferred_engine
+        self.pyttsx3_engine = None
+        self.audio_queue = []
+        self.is_speaking = False
+        
+        # Initialize pygame mixer for gTTS playback
+        if TTS_GTTS_AVAILABLE:
+            pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+        
+        # Initialize pyttsx3 engine
+        if TTS_PYTTSX3_AVAILABLE and preferred_engine == 'pyttsx3':
+            try:
+                self.pyttsx3_engine = pyttsx3.init()
+                self._configure_pyttsx3()
+                print("pyttsx3 TTS engine initialized")
+            except Exception as e:
+                print(f"Failed to initialize pyttsx3: {e}")
+                self.pyttsx3_engine = None
+        
+        # Create temp directory for audio files
+        self.temp_dir = "temp_audio"
+        if not os.path.exists(self.temp_dir):
+            os.makedirs(self.temp_dir)
+    
+    def _configure_pyttsx3(self):
+        """Configure pyttsx3 engine properties for better quality"""
+        if not self.pyttsx3_engine:
+            return
+        
+        try:
+            # Get available voices
+            voices = self.pyttsx3_engine.getProperty('voices')
+            
+            # Try to find a female voice or the best available voice
+            selected_voice = None
+            for voice in voices:
+                if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
+                    selected_voice = voice.id
+                    break
+                elif 'english' in voice.name.lower():
+                    selected_voice = voice.id
+            
+            if selected_voice:
+                self.pyttsx3_engine.setProperty('voice', selected_voice)
+            
+            # Set speaking rate (words per minute)
+            self.pyttsx3_engine.setProperty('rate', 180)  # Normal speaking rate
+            
+            # Set volume (0.0 to 1.0)
+            self.pyttsx3_engine.setProperty('volume', 0.9)
+            
+            print(f"TTS configured - Voice: {selected_voice}, Rate: 180 WPM")
+            
+        except Exception as e:
+            print(f"Error configuring pyttsx3: {e}")
+    
+    def speak_pyttsx3(self, text):
+        """Speak using pyttsx3 engine"""
+        if not self.pyttsx3_engine:
+            return False
+        
+        try:
+            self.is_speaking = True
+            self.pyttsx3_engine.say(text)
+            self.pyttsx3_engine.runAndWait()
+            self.is_speaking = False
+            return True
+        except Exception as e:
+            print(f"pyttsx3 speak error: {e}")
+            self.is_speaking = False
+            return False
+    
+    def speak_gtts(self, text):
+        """Speak using Google TTS with better quality"""
+        if not TTS_GTTS_AVAILABLE:
+            return False
+        
+        try:
+            self.is_speaking = True
+            
+            # Create TTS object
+            tts = gTTS(text=text, lang=self.language, slow=False)
+            
+            # Save to temporary file
+            temp_file = os.path.join(self.temp_dir, f"tts_{int(time.time())}.mp3")
+            tts.save(temp_file)
+            
+            # Play the audio file
+            pygame.mixer.music.load(temp_file)
+            pygame.mixer.music.play()
+            
+            # Wait for playback to finish
+            while pygame.mixer.music.get_busy():
+                time.sleep(0.1)
+            
+            # Clean up temp file
+            try:
+                os.remove(temp_file)
+            except:
+                pass
+            
+            self.is_speaking = False
+            return True
+            
+        except Exception as e:
+            print(f"gTTS speak error: {e}")
+            self.is_speaking = False
+            return False
+    
+    def speak(self, text, priority=False):
+        """Main speak method with fallback engines"""
+        if not text or self.is_speaking:
+            return
+        
+        print(f"TTS: {text}")
+        
+        def speak_worker():
+            success = False
+            
+            # Try preferred engine first
+            if self.preferred_engine == 'pyttsx3' and TTS_PYTTSX3_AVAILABLE:
+                success = self.speak_pyttsx3(text)
+            elif self.preferred_engine == 'gtts' and TTS_GTTS_AVAILABLE:
+                success = self.speak_gtts(text)
+            
+            # Fallback to other engine if preferred failed
+            if not success:
+                if self.preferred_engine != 'pyttsx3' and TTS_PYTTSX3_AVAILABLE:
+                    success = self.speak_pyttsx3(text)
+                elif self.preferred_engine != 'gtts' and TTS_GTTS_AVAILABLE:
+                    success = self.speak_gtts(text)
+            
+            if not success:
+                print(f"TTS failed for: {text}")
+        
+        # Run TTS in separate thread to avoid blocking
+        tts_thread = threading.Thread(target=speak_worker, daemon=True)
+        tts_thread.start()
+    
+    def stop_speaking(self):
+        """Stop current speech"""
+        if TTS_GTTS_AVAILABLE:
+            pygame.mixer.music.stop()
+        
+        if self.pyttsx3_engine:
+            self.pyttsx3_engine.stop()
+        
+        self.is_speaking = False
+    
+    def cleanup(self):
+        """Clean up TTS resources"""
+        self.stop_speaking()
+        
+        # Clean up temp directory
+        try:
+            for file in os.listdir(self.temp_dir):
+                if file.endswith('.mp3'):
+                    os.remove(os.path.join(self.temp_dir, file))
+        except:
+            pass
+
 class APIIntegratedFaceDoorLock:
-    def __init__(self, api_base_url, api_key=None):
+    def __init__(self, api_base_url, api_key=None, tts_engine='pyttsx3', tts_language='en'):
         # API Configuration
         self.api_base_url = api_base_url.rstrip('/')
         self.api_key = api_key
@@ -56,6 +241,10 @@ class APIIntegratedFaceDoorLock:
         }
         if api_key:
             self.headers['Authorization'] = f'Bearer {api_key}'
+        
+        # Initialize TTS
+        self.tts = TTSManager(preferred_engine=tts_engine, language=tts_language)
+        self.tts_enabled = True
         
         # Initialize MediaPipe
         self.mp_face_detection = mp.solutions.face_detection
@@ -89,6 +278,7 @@ class APIIntegratedFaceDoorLock:
         self.recognition_threshold = 0.6
         self.unlock_duration = 5
         self.last_unlock_time = 0
+        self.last_speech_time = 0  # Prevent too frequent TTS
         self.auto_registration_mode = False
         self.pending_registrations = []  # Queue for auto-registration
         
@@ -101,8 +291,14 @@ class APIIntegratedFaceDoorLock:
         self.sync_users_from_api()
         
         gpio_status = "enabled" if GPIO_AVAILABLE else "mocked"
-        print(f"API-Integrated Face Recognition Door Lock System Initialized (GPIO {gpio_status})")
-        print("Commands: 'a' - Auto-register all users, 'q' - Quit, 's' - Show database, 'sync' - Sync with API")
+        tts_status = f"{tts_engine} TTS ready" if TTS_PYTTSX3_AVAILABLE or TTS_GTTS_AVAILABLE else "TTS unavailable"
+        
+        print(f"API-Integrated Face Recognition Door Lock System Initialized (GPIO {gpio_status}, {tts_status})")
+        print("Commands: 'a' - Auto-register, 't' - Toggle TTS, 'q' - Quit, 's' - Show database, '1' - Sync API")
+        
+        # Welcome message
+        if self.tts_enabled:
+            self.tts.speak("Face recognition door lock system initialized. Ready for access control.")
 
     def sync_users_from_api(self):
         """Fetch users from the API and update local cache"""
@@ -136,20 +332,30 @@ class APIIntegratedFaceDoorLock:
                         self.user_database[user_id] = user_info
                     
                     print(f"Synced {len(users)} users from API")
+                    if self.tts_enabled:
+                        self.tts.speak(f"Synchronized {len(users)} users from database.")
                     
                     # Auto-register faces for users with photos
                     if new_users:
                         print(f"Found {len(new_users)} users for auto-registration")
+                        if self.tts_enabled:
+                            self.tts.speak(f"Found {len(new_users)} new users for registration.")
                         self.auto_register_users_from_photos(new_users)
                     
                     return True
                 else:
                     print(f"API Error: {data.get('message', 'Unknown error')}")
+                    if self.tts_enabled:
+                        self.tts.speak("API synchronization failed.")
             else:
                 print(f"Failed to fetch users: HTTP {response.status_code}")
+                if self.tts_enabled:
+                    self.tts.speak("Failed to connect to user database.")
                 
         except requests.RequestException as e:
             print(f"Network error while syncing users: {e}")
+            if self.tts_enabled:
+                self.tts.speak("Network error during synchronization.")
         except Exception as e:
             print(f"Error syncing users: {e}")
         
@@ -157,6 +363,7 @@ class APIIntegratedFaceDoorLock:
 
     def auto_register_users_from_photos(self, user_ids):
         """Automatically register faces from user photos in the API"""
+        registered_count = 0
         for user_id in user_ids:
             if user_id in self.user_database:
                 user = self.user_database[user_id]
@@ -167,12 +374,16 @@ class APIIntegratedFaceDoorLock:
                     success = self.register_face_from_photo(user_id, photo_url)
                     if success:
                         print(f"✓ Successfully registered {user['name']}")
+                        registered_count += 1
                     else:
                         print(f"✗ Failed to register {user['name']} - will need manual registration")
                         self.pending_registrations.append(user_id)
                 else:
                     print(f"No photo available for {user['name']} - adding to manual registration queue")
                     self.pending_registrations.append(user_id)
+        
+        if self.tts_enabled and registered_count > 0:
+            self.tts.speak(f"Successfully registered {registered_count} faces automatically.")
 
     def register_face_from_photo(self, user_id, photo_url):
         """Register face from user's photo URL"""
@@ -222,9 +433,13 @@ class APIIntegratedFaceDoorLock:
         """Start interactive registration for users without photos"""
         if not self.pending_registrations:
             print("No users pending manual registration")
+            if self.tts_enabled:
+                self.tts.speak("No users need manual registration.")
             return
         
         print(f"Starting manual registration for {len(self.pending_registrations)} users")
+        if self.tts_enabled:
+            self.tts.speak(f"Starting manual registration mode for {len(self.pending_registrations)} users.")
         print("Press 'n' for next user, 'skip' to skip current user, 'q' to quit registration")
         
         self.auto_registration_mode = True
@@ -237,6 +452,8 @@ class APIIntegratedFaceDoorLock:
         
         if self.current_registration_index >= len(self.pending_registrations):
             print("Manual registration complete!")
+            if self.tts_enabled:
+                self.tts.speak("Manual registration completed successfully.")
             self.auto_registration_mode = False
             self.pending_registrations = []
             return frame
@@ -282,14 +499,20 @@ class APIIntegratedFaceDoorLock:
                 self.known_faces[user_id] = features
                 self.save_face_database()
                 print(f"✓ Face registered for {user['name']}")
+                if self.tts_enabled:
+                    self.tts.speak(f"Face registered for {user['name']}.")
                 
                 # Move to next user
                 self.current_registration_index += 1
                 return True
             else:
                 print("Could not extract face features. Please try again.")
+                if self.tts_enabled:
+                    self.tts.speak("Could not extract face features. Please try again.")
         else:
             print("No face detected. Please look at the camera.")
+            if self.tts_enabled:
+                self.tts.speak("No face detected. Please look at the camera.")
         
         return False
 
@@ -392,6 +615,7 @@ class APIIntegratedFaceDoorLock:
         results = self.face_mesh.process(rgb_frame)
         
         recognized_users = []
+        current_time = time.time()
         
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
@@ -418,15 +642,46 @@ class APIIntegratedFaceDoorLock:
                                    (50, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
                         cv2.putText(frame, f"Role: {user['profile']}", 
                                    (50, 230), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                        
+                        # TTS announcement for recognized user (but not too frequently)
+                        if self.tts_enabled and current_time - self.last_speech_time > 5:
+                            greeting = self.get_greeting_message(user['name'], user['profile'])
+                            self.tts.speak(greeting)
+                            self.last_speech_time = current_time
                     else:
                         cv2.putText(frame, "Unknown Person", 
                                    (50, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                        
+                        # TTS warning for unknown person (but not too frequently)
+                        if self.tts_enabled and current_time - self.last_speech_time > 3:
+                            self.tts.speak("Unknown person detected. Access denied.")
+                            self.last_speech_time = current_time
                 
                 # Draw face mesh
                 self.mp_drawing.draw_landmarks(
                     frame, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS)
         
         return recognized_users
+
+    def get_greeting_message(self, name, role):
+        """Generate appropriate greeting message based on user role and time"""
+        current_hour = datetime.now().hour
+        
+        # Time-based greeting
+        if 5 <= current_hour < 12:
+            time_greeting = "Good morning"
+        elif 12 <= current_hour < 17:
+            time_greeting = "Good afternoon"
+        else:
+            time_greeting = "Good evening"
+        
+        # Role-based greeting
+        if role.upper() in ['ADMIN', 'ADMINISTRATOR', 'MANAGER']:
+            return f"{time_greeting} {name}. Welcome back, administrator."
+        elif role.upper() in ['SUPERVISOR', 'LEAD']:
+            return f"{time_greeting} {name}. Access granted, supervisor."
+        else:
+            return f"{time_greeting} {name}. Welcome to the warehouse."
 
     def unlock_door(self, user_id, user_info, frame):
         """Unlock the door for authorized person"""
@@ -437,6 +692,10 @@ class APIIntegratedFaceDoorLock:
             return
         
         print(f"ACCESS GRANTED: {user_info['name']} (ID: {user_id}) at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # TTS announcement for door unlock
+        if self.tts_enabled:
+            self.tts.speak(f"Access granted. Door unlocked for {user_info['name']}.")
         
         # Log access to API
         self.log_access_to_api(user_id, frame, status=1)
@@ -450,8 +709,9 @@ class APIIntegratedFaceDoorLock:
             time.sleep(self.unlock_duration)
             GPIO.output(self.LOCK_PIN, GPIO.LOW)
             print("Door locked automatically")
+            if self.tts_enabled:
+                self.tts.speak("Door locked automatically.")
         
-        import threading
         threading.Thread(target=lock_door, daemon=True).start()
 
     def save_face_database(self):
@@ -485,21 +745,65 @@ class APIIntegratedFaceDoorLock:
         print(f"\nRegistered Faces: {len(self.known_faces)}")
         if self.pending_registrations:
             print(f"Pending Manual Registration: {len(self.pending_registrations)}")
+        
+        if self.tts_enabled:
+            total_users = len(self.user_database)
+            registered_faces = len(self.known_faces)
+            pending = len(self.pending_registrations)
+            self.tts.speak(f"Database status: {total_users} total users, {registered_faces} faces registered, {pending} pending registration.")
         print()
+
+    def toggle_tts(self):
+        """Toggle TTS on/off"""
+        self.tts_enabled = not self.tts_enabled
+        status = "enabled" if self.tts_enabled else "disabled"
+        print(f"TTS {status}")
+        
+        if self.tts_enabled:
+            self.tts.speak("Text to speech enabled.")
+        else:
+            self.tts.stop_speaking()
+
+    def announce_access_denied(self, reason="unauthorized"):
+        """Announce access denied with reason"""
+        if not self.tts_enabled:
+            return
+        
+        current_time = time.time()
+        if current_time - self.last_speech_time < 3:  # Prevent spam
+            return
+        
+        messages = {
+            "unauthorized": "Access denied. Unauthorized person detected.",
+            "unknown": "Access denied. Unknown person detected.",
+            "low_confidence": "Access denied. Face recognition confidence too low.",
+            "system_error": "Access denied. System error occurred."
+        }
+        
+        message = messages.get(reason, "Access denied.")
+        self.tts.speak(message)
+        self.last_speech_time = current_time
 
     def run(self):
         """Main loop"""
         print("API-Integrated Face Recognition Door Lock Active")
         print("Auto-registration completed. Looking for authorized faces...")
         
+        if self.tts_enabled:
+            self.tts.speak("Face recognition door lock is now active. Looking for authorized personnel.")
+        
         if self.pending_registrations:
             print(f"Note: {len(self.pending_registrations)} users need manual registration. Press 'a' to start.")
+            if self.tts_enabled:
+                self.tts.speak(f"{len(self.pending_registrations)} users need manual registration.")
         
         try:
             while True:
                 ret, frame = self.cap.read()
                 if not ret:
                     print("Failed to grab frame")
+                    if self.tts_enabled:
+                        self.tts.speak("Camera error detected.")
                     break
                 
                 # Flip frame horizontally for mirror effect
@@ -534,49 +838,122 @@ class APIIntegratedFaceDoorLock:
                         cv2.putText(frame, f"Pending Registration: {len(self.pending_registrations)}", 
                                    (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
                 
+                # Show TTS status
+                tts_status = "TTS: ON" if self.tts_enabled else "TTS: OFF"
+                tts_color = (0, 255, 0) if self.tts_enabled else (0, 0, 255)
+                cv2.putText(frame, tts_status, 
+                           (400, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, tts_color, 2)
+                
                 # Show GPIO and API status
                 gpio_text = "GPIO: Real" if GPIO_AVAILABLE else "GPIO: Mock"
                 cv2.putText(frame, gpio_text, 
-                           (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
+                           (10, 430), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
                 cv2.putText(frame, "API: Connected", 
-                           (10, 470), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                           (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                
+                # Show TTS engine info
+                if TTS_PYTTSX3_AVAILABLE or TTS_GTTS_AVAILABLE:
+                    engine_text = f"TTS: {self.tts.preferred_engine}"
+                    cv2.putText(frame, engine_text, 
+                               (10, 470), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
                 
                 cv2.imshow('API-Integrated Face Recognition Door Lock', frame)
                 
                 # Handle keyboard input
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
+                    if self.tts_enabled:
+                        self.tts.speak("System shutting down. Goodbye.")
+                        time.sleep(2)  # Give time for TTS to finish
                     break
                 elif key == ord('a') and not self.auto_registration_mode:
                     self.start_manual_registration_mode()
                 elif key == ord('s'):
                     self.show_database()
+                elif key == ord('t'):
+                    self.toggle_tts()
                 elif key == ord('1'):  # Sync with API
                     print("Syncing with API...")
+                    if self.tts_enabled:
+                        self.tts.speak("Synchronizing with database.")
                     self.sync_users_from_api()
+                elif key == ord('h'):  # Help
+                    self.show_help()
                 elif self.auto_registration_mode:
                     if key == ord(' '):  # Space to register face
                         self.register_current_user_face(frame)
                     elif key == ord('n'):  # Next user
                         self.current_registration_index += 1
+                        if self.tts_enabled:
+                            self.tts.speak("Moving to next user.")
                     elif key == ord('S'):  # Skip user (capital S)
-                        print(f"Skipped {self.user_database[self.pending_registrations[self.current_registration_index]]['name']}")
+                        user = self.user_database[self.pending_registrations[self.current_registration_index]]
+                        print(f"Skipped {user['name']}")
+                        if self.tts_enabled:
+                            self.tts.speak(f"Skipped {user['name']}.")
                         self.current_registration_index += 1
                     elif key == ord('q'):  # Quit registration
                         self.auto_registration_mode = False
+                        if self.tts_enabled:
+                            self.tts.speak("Registration mode ended.")
         
         except KeyboardInterrupt:
             print("\nShutting down...")
+            if self.tts_enabled:
+                self.tts.speak("Emergency shutdown initiated.")
         
         finally:
             self.cleanup()
 
+    def show_help(self):
+        """Display help information"""
+        help_text = """
+        FACE RECOGNITION DOOR LOCK - HELP
+        ==================================
+        
+        Normal Mode Commands:
+        'q' - Quit system
+        'a' - Start auto-registration mode
+        's' - Show database status
+        't' - Toggle TTS on/off
+        '1' - Sync with API
+        'h' - Show this help
+        
+        Registration Mode Commands:
+        'SPACE' - Register current face
+        'n' - Next user
+        'S' - Skip current user
+        'q' - Quit registration mode
+        
+        System Features:
+        - Automatic face recognition
+        - Voice announcements
+        - API integration
+        - Access logging
+        - Time-based greetings
+        """
+        print(help_text)
+        
+        if self.tts_enabled:
+            self.tts.speak("Help information displayed. Check console for details.")
+
     def cleanup(self):
         """Clean up resources"""
+        print("Cleaning up system resources...")
+        
+        if self.tts_enabled:
+            self.tts.speak("System cleanup in progress.")
+            time.sleep(1)  # Give TTS time to finish
+        
+        # Clean up TTS
+        self.tts.cleanup()
+        
+        # Clean up camera and GPIO
         self.cap.release()
         cv2.destroyAllWindows()
         GPIO.output(self.LOCK_PIN, GPIO.LOW)
         GPIO.cleanup()
+        
         print("System shutdown complete")
 
 if __name__ == "__main__":
@@ -584,6 +961,39 @@ if __name__ == "__main__":
     API_BASE_URL = "https://apps.mediabox.bi:26875/"  # Replace with your actual API URL
     API_KEY = "your_api_key_here"  # Replace with your actual API key if required
     
-    # Create and run the API-integrated door lock system
-    door_lock = APIIntegratedFaceDoorLock(API_BASE_URL, API_KEY)
-    door_lock.run()
+    # TTS Configuration
+    # Options: 'pyttsx3' (offline, faster) or 'gtts' (online, better quality)
+    TTS_ENGINE = 'pyttsx3'  # Change to 'gtts' for better quality but requires internet
+    TTS_LANGUAGE = 'en'     # Language code for TTS
+    
+    print("=" * 60)
+    print("FACE RECOGNITION DOOR LOCK WITH TTS")
+    print("=" * 60)
+    print()
+    print("Required packages:")
+    print("pip install opencv-python mediapipe numpy pickle5 requests pillow")
+    print("pip install pyttsx3  # For offline TTS")
+    print("pip install gtts pygame  # For online high-quality TTS")
+    print()
+    print("TTS Engine Options:")
+    print("- pyttsx3: Offline, faster, works without internet")
+    print("- gtts: Online, better quality, requires internet connection")
+    print()
+    
+    if not (TTS_PYTTSX3_AVAILABLE or TTS_GTTS_AVAILABLE):
+        print("WARNING: No TTS engines available!")
+        print("Install at least one TTS engine for voice functionality.")
+        print()
+    
+    try:
+        # Create and run the API-integrated door lock system
+        door_lock = APIIntegratedFaceDoorLock(
+            api_base_url=API_BASE_URL,
+            api_key=API_KEY,
+            tts_engine=TTS_ENGINE,
+            tts_language=TTS_LANGUAGE
+        )
+        door_lock.run()
+    except Exception as e:
+        print(f"System error: {e}")
+        print("Please check your configuration and try again.")
