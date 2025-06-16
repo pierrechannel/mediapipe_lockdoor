@@ -4,6 +4,7 @@ from datetime import datetime
 import base64
 from io import BytesIO
 from PIL import Image
+import cv2
 
 class APIIntegration:
     def __init__(self, api_base_url, api_key=None):

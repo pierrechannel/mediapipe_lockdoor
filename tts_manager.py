@@ -9,83 +9,85 @@ from PIL import Image
 try:
     import pyttsx3
     TTS_PYTTSX3_AVAILABLE = True
-    print("pyttsx3 TTS engine available")
+    print("Moteur TTS pyttsx3 disponible")
 except ImportError:
     TTS_PYTTSX3_AVAILABLE = False
-    print("pyttsx3 not available - install with: pip install pyttsx3")
+    print("pyttsx3 non disponible - installez avec: pip install pyttsx3")
 
 try:
     from gtts import gTTS
     import pygame
     TTS_GTTS_AVAILABLE = True
-    print("gTTS engine available")
+    print("Moteur gTTS disponible")
 except ImportError:
     TTS_GTTS_AVAILABLE = False
-    print("gTTS not available - install with: pip install gtts pygame")
+    print("gTTS non disponible - installez avec: pip install gtts pygame")
 
 class TTSManager:
-    """Handles Text-to-Speech functionality with multiple engines"""
+    """Gère la fonctionnalité de synthèse vocale avec plusieurs moteurs"""
     
-    def __init__(self, preferred_engine='pyttsx3', language='en'):
-        self.language = language
+    def __init__(self, preferred_engine='pyttsx3', language='fr'):
+        self.language = language  # Français par défaut
         self.preferred_engine = preferred_engine
         self.pyttsx3_engine = None
         self.audio_queue = []
         self.is_speaking = False
         
-        # Initialize pygame mixer for gTTS playback
+        # Initialiser le mixer pygame pour gTTS
         if TTS_GTTS_AVAILABLE:
             pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
         
-        # Initialize pyttsx3 engine
+        # Initialiser pyttsx3
         if TTS_PYTTSX3_AVAILABLE and preferred_engine == 'pyttsx3':
             try:
                 self.pyttsx3_engine = pyttsx3.init()
                 self._configure_pyttsx3()
-                print("pyttsx3 TTS engine initialized")
+                print("Moteur pyttsx3 TTS initialisé")
             except Exception as e:
-                print(f"Failed to initialize pyttsx3: {e}")
+                print(f"Échec de l'initialisation de pyttsx3: {e}")
                 self.pyttsx3_engine = None
         
-        # Create temp directory for audio files
+        # Créer un répertoire temporaire pour les fichiers audio
         self.temp_dir = "temp_audio"
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
     
     def _configure_pyttsx3(self):
-        """Configure pyttsx3 engine properties for better quality"""
+        """Configurer pyttsx3 pour une meilleure qualité en français"""
         if not self.pyttsx3_engine:
             return
         
         try:
-            # Get available voices
+            # Obtenir les voix disponibles
             voices = self.pyttsx3_engine.getProperty('voices')
             
-            # Try to find a female voice or the best available voice
+            # Essayer de trouver une voix française
             selected_voice = None
             for voice in voices:
-                if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
+                if 'french' in voice.languages or 'fr' in voice.languages:
                     selected_voice = voice.id
                     break
-                elif 'english' in voice.name.lower():
+                elif 'français' in voice.name.lower():
                     selected_voice = voice.id
             
             if selected_voice:
                 self.pyttsx3_engine.setProperty('voice', selected_voice)
+            else:
+                print("Aucune voix française trouvée - utilisation de la voix par défaut")
             
-            # Set speaking rate (words per minute)
-            self.pyttsx3_engine.setProperty('rate', 180)  # Normal speaking rate
+            # Configurer la vitesse de parole (mots par minute)
+            self.pyttsx3_engine.setProperty('rate', 160)  # Vitesse normale pour le français
             
-            # Set volume (0.0 to 1.0)
+            # Configurer le volume (0.0 à 1.0)
             self.pyttsx3_engine.setProperty('volume', 0.9)
             
-            print(f"TTS configured - Voice: {selected_voice}, Rate: 180 WPM")
+            print(f"TTS configuré - Voix: {selected_voice}, Vitesse: 160 MPM")
             
         except Exception as e:
-            print(f"Error configuring pyttsx3: {e}")
+            print(f"Erreur de configuration de pyttsx3: {e}")
     
     def speak_pyttsx3(self, text):
-        """Speak using pyttsx3 engine"""
+        """Parler en utilisant pyttsx3"""
         if not self.pyttsx3_engine:
             return False
         
@@ -96,34 +98,34 @@ class TTSManager:
             self.is_speaking = False
             return True
         except Exception as e:
-            print(f"pyttsx3 speak error: {e}")
+            print(f"Erreur de parole pyttsx3: {e}")
             self.is_speaking = False
             return False
     
     def speak_gtts(self, text):
-        """Speak using Google TTS with better quality"""
+        """Parler en utilisant Google TTS avec une meilleure qualité"""
         if not TTS_GTTS_AVAILABLE:
             return False
         
         try:
             self.is_speaking = True
             
-            # Create TTS object
+            # Créer l'objet TTS en français
             tts = gTTS(text=text, lang=self.language, slow=False)
             
-            # Save to temporary file
+            # Sauvegarder dans un fichier temporaire
             temp_file = os.path.join(self.temp_dir, f"tts_{int(time.time())}.mp3")
             tts.save(temp_file)
             
-            # Play the audio file
+            # Jouer le fichier audio
             pygame.mixer.music.load(temp_file)
             pygame.mixer.music.play()
             
-            # Wait for playback to finish
+            # Attendre la fin de la lecture
             while pygame.mixer.music.get_busy():
                 time.sleep(0.1)
             
-            # Clean up temp file
+            # Nettoyer le fichier temporaire
             try:
                 os.remove(temp_file)
             except:
@@ -133,12 +135,12 @@ class TTSManager:
             return True
             
         except Exception as e:
-            print(f"gTTS speak error: {e}")
+            print(f"Erreur de parole gTTS: {e}")
             self.is_speaking = False
             return False
     
     def speak(self, text, priority=False):
-        """Main speak method with fallback engines"""
+        """Méthode principale pour parler avec des moteurs de secours"""
         if not text or self.is_speaking:
             return
         
@@ -147,13 +149,13 @@ class TTSManager:
         def speak_worker():
             success = False
             
-            # Try preferred engine first
+            # Essayer d'abord le moteur préféré
             if self.preferred_engine == 'pyttsx3' and TTS_PYTTSX3_AVAILABLE:
                 success = self.speak_pyttsx3(text)
             elif self.preferred_engine == 'gtts' and TTS_GTTS_AVAILABLE:
                 success = self.speak_gtts(text)
             
-            # Fallback to other engine if preferred failed
+            # Revenir à d'autres moteurs si le préféré échoue
             if not success:
                 if self.preferred_engine != 'pyttsx3' and TTS_PYTTSX3_AVAILABLE:
                     success = self.speak_pyttsx3(text)
@@ -161,14 +163,14 @@ class TTSManager:
                     success = self.speak_gtts(text)
             
             if not success:
-                print(f"TTS failed for: {text}")
+                print(f"Échec du TTS pour: {text}")
         
-        # Run TTS in separate thread to avoid blocking
+        # Exécuter le TTS dans un thread séparé pour ne pas bloquer
         tts_thread = threading.Thread(target=speak_worker, daemon=True)
         tts_thread.start()
     
     def stop_speaking(self):
-        """Stop current speech"""
+        """Arrêter la parole en cours"""
         if TTS_GTTS_AVAILABLE:
             pygame.mixer.music.stop()
         
@@ -178,10 +180,10 @@ class TTSManager:
         self.is_speaking = False
     
     def cleanup(self):
-        """Clean up TTS resources"""
+        """Nettoyer les ressources TTS"""
         self.stop_speaking()
         
-        # Clean up temp directory
+        # Nettoyer le répertoire temporaire
         try:
             for file in os.listdir(self.temp_dir):
                 if file.endswith('.mp3'):

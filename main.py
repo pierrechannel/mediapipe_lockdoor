@@ -48,24 +48,24 @@ class FaceDoorLockSystem:
                 self.pending_registrations = new_users
 
     def get_greeting_message(self, name, role):
-        """Generate appropriate greeting message based on user role and time"""
+        """Générer un message d'accueil approprié en français"""
         current_hour = datetime.now().hour
         
-        # Time-based greeting
+        # Salutation basée sur l'heure
         if 5 <= current_hour < 12:
-            time_greeting = "Good morning"
-        elif 12 <= current_hour < 17:
-            time_greeting = "Good afternoon"
+            time_greeting = "Bonjour"
+        elif 12 <= current_hour < 18:
+            time_greeting = "Bon après-midi"
         else:
-            time_greeting = "Good evening"
+            time_greeting = "Bonsoir"
         
-        # Role-based greeting
+        # Salutation basée sur le rôle
         if role.upper() in ['ADMIN', 'ADMINISTRATOR', 'MANAGER']:
-            return f"{time_greeting} {name}. Welcome back, administrator."
+            return f"{time_greeting} {name}. Bienvenue, administrateur."
         elif role.upper() in ['SUPERVISOR', 'LEAD']:
-            return f"{time_greeting} {name}. Access granted, supervisor."
+            return f"{time_greeting} {name}. Accès autorisé, superviseur."
         else:
-            return f"{time_greeting} {name}. Welcome to the warehouse."
+            return f"{time_greeting} {name}. Bienvenue dans l'entrepôt."
 
     def run(self):
         """Main application loop"""
