@@ -121,9 +121,9 @@ class FaceDoorLockSystem:
     def cleanup(self):
         """Clean up all resources"""
         print("Nettoyage des ressources système...")
-        self.tts.cleanup()
-        self.cap.release()
-        self.door_lock.cleanup()
+        # self.tts.cleanup()
+        # self.cap.release()
+        # self.door_lock.cleanup()
         print("Arrêt complet du système")
 
 if __name__ == "__main__":
