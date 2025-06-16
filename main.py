@@ -8,7 +8,7 @@ from api_integration import APIIntegration
 from door_lock import DoorLock
 
 class FaceDoorLockSystem:
-    def __init__(self, api_base_url, api_key=None, tts_engine='pyttsx3', tts_language='en'):
+    def __init__(self, api_base_url, api_key=None, tts_engine='pyttsx3', tts_language='fr'):
         # Initialize components
         self.tts = TTSManager(preferred_engine=tts_engine, language=tts_language)
         self.tts_enabled = True
@@ -17,8 +17,11 @@ class FaceDoorLockSystem:
         self.api = APIIntegration(api_base_url, api_key)
         self.door_lock = DoorLock()
         
-        # Camera
-        self.cap = cv2.VideoCapture(0)
+        # Camera - try different backends if needed
+        self.cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+        if not self.cap.isOpened():
+            self.cap = cv2.VideoCapture(0)  # Fallback to default backend
+            
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         
@@ -30,9 +33,9 @@ class FaceDoorLockSystem:
         # Initial sync
         self.sync_users_from_api()
         
-        print("Face Recognition Door Lock System Initialized")
+        print("Système de reconnaissance faciale initialisé")
         if self.tts_enabled:
-            self.tts.speak("Face recognition door lock system initialized. Ready for access control.")
+            self.tts.speak("Système de reconnaissance faciale initialisé. Prêt pour le contrôle d'accès.")
 
     def sync_users_from_api(self):
         """Fetch users from API and identify those needing registration"""
@@ -44,14 +47,14 @@ class FaceDoorLockSystem:
                     new_users.append(user_id)
             
             if new_users:
-                print(f"Found {len(new_users)} users needing registration")
+                print(f"{len(new_users)} utilisateurs nécessitent un enregistrement")
                 self.pending_registrations = new_users
 
     def get_greeting_message(self, name, role):
-        """Générer un message d'accueil approprié en français"""
+        """Generate appropriate greeting message in French"""
         current_hour = datetime.now().hour
         
-        # Salutation basée sur l'heure
+        # Time-based greeting
         if 5 <= current_hour < 12:
             time_greeting = "Bonjour"
         elif 12 <= current_hour < 18:
@@ -59,42 +62,39 @@ class FaceDoorLockSystem:
         else:
             time_greeting = "Bonsoir"
         
-        # Salutation basée sur le rôle
+        # Role-based greeting
         if role.upper() in ['ADMIN', 'ADMINISTRATOR', 'MANAGER']:
             return f"{time_greeting} {name}. Bienvenue, administrateur."
         elif role.upper() in ['SUPERVISOR', 'LEAD']:
             return f"{time_greeting} {name}. Accès autorisé, superviseur."
         else:
-            return f"{time_greeting} {name}. Bienvenue dans l'entrepôt."
+            return f"{time_greeting} {name}. Bienvenue dans nos locaux."
 
     def run(self):
-        """Main application loop"""
-        print("Face Recognition Door Lock Active")
+        """Main application loop - headless version"""
+        print("Système de reconnaissance faciale actif")
         if self.tts_enabled:
-            self.tts.speak("Face recognition door lock is now active. Looking for authorized personnel.")
+            self.tts.speak("Système de reconnaissance faciale maintenant actif. Recherche de personnel autorisé.")
         
         try:
             while True:
                 ret, frame = self.cap.read()
                 if not ret:
-                    print("Failed to grab frame")
-                    break
+                    print("Échec de la capture d'image")
+                    time.sleep(1)  # Wait before retrying
+                    continue
                 
                 # Flip frame horizontally for mirror effect
                 frame = cv2.flip(frame, 1)
                 
-                # Recognize faces
-                frame, recognized = self.face_recognition.recognize_face(frame)
+                # Recognize faces (without displaying)
+                _, recognized = self.face_recognition.recognize_face(frame)
                 
                 # Process recognized users
                 for user_id, confidence in recognized:
                     user_info = self.api.get_user_info(user_id)
                     if user_info:
-                        # Display user info
-                        cv2.putText(frame, f"{user_info['name']} ({confidence:.2f})", 
-                                   (50, 200), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-                        cv2.putText(frame, f"Role: {user_info['profile']}", 
-                                   (50, 230), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                        print(f"Utilisateur reconnu: {user_info['name']} (Confiance: {confidence:.2f})")
                         
                         # Announce and unlock
                         current_time = time.time()
@@ -107,66 +107,33 @@ class FaceDoorLockSystem:
                         self.door_lock.unlock()
                         self.api.log_access(user_id, frame, status=1)
                 
-                # Display UI
-                self._draw_ui(frame)
-                cv2.imshow('Face Recognition Door Lock', frame)
+                # Add small delay to reduce CPU usage
+                time.sleep(0.1)
                 
-                # Handle keyboard input
-                key = cv2.waitKey(1) & 0xFF
-                if key == ord('q'):
-                    break
-                elif key == ord('t'):
-                    self._toggle_tts()
+        except KeyboardInterrupt:
+            print("\nArrêt du système...")
+            if self.tts_enabled:
+                self.tts.speak("Arrêt du système en cours.")
         
         finally:
             self.cleanup()
 
-    def _draw_ui(self, frame):
-        """Draw user interface elements on frame"""
-        # Status information
-        status = "LOCKED"
-        status_color = (0, 0, 255)  # Red
-        if time.time() - self.door_lock.last_unlock_time < self.door_lock.unlock_duration:
-            status = "UNLOCKED"
-            status_color = (0, 255, 0)  # Green
-        
-        cv2.putText(frame, f"Status: {status}", 
-                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, status_color, 2)
-        
-        # TTS status
-        tts_status = "TTS: ON" if self.tts_enabled else "TTS: OFF"
-        tts_color = (0, 255, 0) if self.tts_enabled else (0, 0, 255)
-        cv2.putText(frame, tts_status, 
-                   (400, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, tts_color, 2)
-
-    def _toggle_tts(self):
-        """Toggle TTS on/off"""
-        self.tts_enabled = not self.tts_enabled
-        status = "enabled" if self.tts_enabled else "disabled"
-        print(f"TTS {status}")
-        
-        if self.tts_enabled:
-            self.tts.speak("Text to speech enabled.")
-        else:
-            self.tts.stop_speaking()
-
     def cleanup(self):
         """Clean up all resources"""
-        print("Cleaning up system resources...")
+        print("Nettoyage des ressources système...")
         self.tts.cleanup()
         self.cap.release()
         self.door_lock.cleanup()
-        cv2.destroyAllWindows()
-        print("System shutdown complete")
+        print("Arrêt complet du système")
 
 if __name__ == "__main__":
     # Configuration
     API_BASE_URL = "https://apps.mediabox.bi:26875/"  # Replace with your actual API URL
     API_KEY = "your_api_key_here"  # Replace with your actual API key if required
     
-    # TTS Configuration
-    TTS_ENGINE = 'pyttsx3'  # Change to 'gtts' for better quality but requires internet
-    TTS_LANGUAGE = 'en'     # Language code for TTS
+    # TTS Configuration - French language
+    TTS_ENGINE = 'pyttsx3'  # Use 'gtts' for better quality but requires internet
+    TTS_LANGUAGE = 'fr'     # French language code
     
     # Create and run the system
     system = FaceDoorLockSystem(
