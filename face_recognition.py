@@ -4,6 +4,10 @@ import numpy as np
 import pickle
 import os
 from datetime import datetime
+import requests
+import json
+import threading
+import time
 
 class FaceRecognition:
     def __init__(self):
@@ -30,6 +34,12 @@ class FaceRecognition:
         
         # Settings
         self.recognition_threshold = 0.6
+        
+        # Registration mode
+        self.registration_mode = False
+        self.registration_user_id = None
+        self.registration_frames_collected = 0
+        self.registration_frames_needed = 10  # Collecter plusieurs frames pour un meilleur encodage
 
     def extract_face_features(self, image, face_landmarks):
         """Extract facial features from MediaPipe landmarks"""
@@ -80,8 +90,89 @@ class FaceRecognition:
         similarity = dot_product / (norm1 * norm2)
         return max(0.0, similarity)
 
+    def start_registration_mode(self, user_id):
+        """Démarrer le mode d'enregistrement pour un utilisateur"""
+        self.registration_mode = True
+        self.registration_user_id = user_id
+        self.registration_frames_collected = 0
+        self.registration_features = []
+        print(f"Mode d'enregistrement activé pour l'utilisateur {user_id}")
+        return True
+
+    def process_registration_frame(self, frame):
+        """Traiter une frame en mode d'enregistrement"""
+        if not self.registration_mode:
+            return False
+        
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.face_mesh.process(rgb_frame)
+        
+        if results.multi_face_landmarks:
+            # Prendre le premier visage détecté
+            face_landmarks = results.multi_face_landmarks[0]
+            features = self.extract_face_features(frame, face_landmarks)
+            
+            if len(features) > 0:
+                self.registration_features.append(features)
+                self.registration_frames_collected += 1
+                
+                # Dessiner le maillage facial
+                self.mp_drawing.draw_landmarks(
+                    frame, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS)
+                
+                # Afficher le progrès
+                cv2.putText(frame, f"Enregistrement: {self.registration_frames_collected}/{self.registration_frames_needed}", 
+                           (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                
+                # Si on a collecté assez de frames
+                if self.registration_frames_collected >= self.registration_frames_needed:
+                    return self.finalize_registration()
+        
+        return False
+
+    def finalize_registration(self):
+        """Finaliser l'enregistrement en moyennant les features"""
+        try:
+            if len(self.registration_features) > 0:
+                # Moyenner les features pour un encodage plus robuste
+                mean_features = np.mean(self.registration_features, axis=0)
+                
+                # Sauvegarder dans la base de données locale
+                self.known_faces[self.registration_user_id] = mean_features
+                self.save_face_database()
+                
+                print(f"Enregistrement terminé pour l'utilisateur {self.registration_user_id}")
+                
+                # Réinitialiser le mode d'enregistrement
+                self.registration_mode = False
+                self.registration_user_id = None
+                self.registration_features = []
+                self.registration_frames_collected = 0
+                
+                return True
+            else:
+                print("Aucune feature collectée pour l'enregistrement")
+                return False
+                
+        except Exception as e:
+            print(f"Erreur lors de la finalisation de l'enregistrement: {e}")
+            return False
+
+    def cancel_registration(self):
+        """Annuler le mode d'enregistrement"""
+        self.registration_mode = False
+        self.registration_user_id = None
+        self.registration_features = []
+        self.registration_frames_collected = 0
+        print("Mode d'enregistrement annulé")
+
     def recognize_face(self, frame):
         """Recognize faces in the frame"""
+        # Si on est en mode d'enregistrement, traiter différemment
+        if self.registration_mode:
+            registration_complete = self.process_registration_frame(frame)
+            return frame, [], registration_complete
+        
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(rgb_frame)
         
@@ -110,7 +201,7 @@ class FaceRecognition:
                 self.mp_drawing.draw_landmarks(
                     frame, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS)
         
-        return frame, recognized_users
+        return frame, recognized_users, False
 
     def save_face_database(self):
         """Save face database to file"""
@@ -119,7 +210,7 @@ class FaceRecognition:
                 pickle.dump(self.known_faces, f)
         except Exception as e:
             print(f"Error saving database: {e}")
-
+    
     def load_face_database(self):
         """Load face database from file"""
         try:
@@ -132,21 +223,3 @@ class FaceRecognition:
         except Exception as e:
             print(f"Error loading database: {e}")
             self.known_faces = {}
-
-    def register_face(self, frame, user_id):
-        """Register a new face from the frame"""
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.face_mesh.process(rgb_frame)
-        
-        if results.multi_face_landmarks:
-            # Use the first detected face
-            face_landmarks = results.multi_face_landmarks[0]
-            features = self.extract_face_features(frame, face_landmarks)
-            
-            if len(features) > 0:
-                # Store the face features
-                self.known_faces[user_id] = features
-                self.save_face_database()
-                return True
-        
-        return False
