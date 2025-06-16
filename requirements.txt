@@ -23,3 +23,7 @@ RPi.GPIO==0.7.1
 # Development/Debugging (optional)
 # matplotlib==3.7.2  # For visualization during development
 # pillow==10.0.1  # For image processing utilities
+
+pygame==2.6.1
+pyttsx3==2.98
+requests==2.32.4
