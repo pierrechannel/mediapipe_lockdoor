@@ -36,9 +36,6 @@ class FaceDoorLockSystem:
         self.registration_announced = False
         self.registration_start_time = 0
         
-        # Initial sync
-        self.sync_users_from_api()
-        
         # Start registration monitoring
         self.start_registration_monitoring()
         
@@ -46,96 +43,151 @@ class FaceDoorLockSystem:
         if self.tts_enabled:
             self.tts.speak("Système de reconnaissance faciale initialisé. Prêt pour le contrôle d'accès.")
 
-    def sync_users_from_api(self):
-        """Fetch users from API and identify those needing registration"""
-        if self.api.sync_users():
-            # Identify users needing registration
-            new_users = []
-            for user_id in self.api.user_database:
-                if user_id not in self.face_recognition.known_faces:
-                    new_users.append(user_id)
-            
-            if new_users:
-                print(f"{len(new_users)} utilisateurs nécessitent un enregistrement")
-                self.pending_registrations = new_users
-
-    def start_registration_monitoring(self):
-        """Démarre la surveillance des demandes d'enregistrement"""
-        def monitor_registration():
-            while True:
-                try:
-                    # Vérifier les demandes d'enregistrement depuis l'API
-                    registration_requests = self.api.check_registration_requests()
+    def monitor_registration(self):
+        while True:
+            try:
+                # Vérifier les demandes d'enregistrement depuis l'API
+                # Utiliser la nouvelle fonction pour récupérer les demandes avec MODE=2 et STATUS=0
+                registration_requests = self.api.get_all_check_registration_data()
+                
+                if registration_requests:
+                    print(f"Trouvé {len(registration_requests)} demande(s) d'enregistrement en attente")
                     
                     for request in registration_requests:
                         user_id = request.get('WAREHOUSE_USER_ID')
-                        if user_id and not self.face_recognition.registration_mode:
-                            self.handle_registration_request(user_id)
-                    
-                    time.sleep(5)  # Vérifier toutes les 5 secondes
-                    
-                except Exception as e:
-                    print(f"Erreur dans la surveillance d'enregistrement: {e}")
-                    time.sleep(5)
-        
-        # Démarrer le thread de surveillance
-        monitor_thread = threading.Thread(target=monitor_registration, daemon=True)
+                        user_data = request.get('user', {})
+                        
+                        # Vérifier si l'utilisateur n'est pas déjà en cours d'enregistrement
+                        if (user_id and 
+                            not self.face_recognition.registration_mode and 
+                            not self.registration_in_progress and
+                            user_id != self.current_registration_user):
+                            
+                            print(f"Traitement de la demande d'enregistrement pour: {user_data.get('FULL_NAME', 'Utilisateur inconnu')}")
+                            self.handle_registration_request_from_data(request)
+                            break  # Traiter une demande à la fois
+                
+                time.sleep(5)  # Vérifier toutes les 5 secondes
+                
+            except Exception as e:
+                print(f"Erreur dans la surveillance d'enregistrement: {e}")
+                time.sleep(5)
+
+    def start_registration_monitoring(self):
+        """Start the registration monitoring thread"""
+        monitor_thread = threading.Thread(target=self.monitor_registration, daemon=True)
         monitor_thread.start()
         print("Surveillance des demandes d'enregistrement démarrée")
 
-    def handle_registration_request(self, user_id):
-        """Gérer une demande d'enregistrement"""
+    def handle_registration_request_from_data(self, request_data):
+        """Gérer une demande d'enregistrement avec les données complètes"""
         try:
-            user_info = self.api.get_user_info(user_id)
-            if user_info:
-                print(f"Demande d'enregistrement reçue pour: {user_info['name']}")
-                
-                # Annoncer le début de l'enregistrement
-                if self.tts_enabled:
-                    message = f"Demande d'enregistrement pour {user_info['name']}. Veuillez vous positionner devant la caméra."
-                    self.tts.speak(message)
-                
-                # Démarrer le mode d'enregistrement
-                if self.face_recognition.start_registration_mode(user_id):
-                    self.registration_in_progress = True
-                    self.current_registration_user = user_id
-                    self.registration_announced = True
-                    self.registration_start_time = time.time()
-                    
-                    print(f"Mode d'enregistrement activé pour {user_info['name']}")
-                    
-        except Exception as e:
-            print(f"Erreur lors du traitement de la demande d'enregistrement: {e}")
-            self.api.send_registration_status(user_id, 2)  # Échec
-
-    def process_registration_completion(self, success):
-        """Traiter la fin d'un enregistrement"""
-        if self.current_registration_user:
-            user_info = self.api.get_user_info(self.current_registration_user)
+            user_id = request_data.get('WAREHOUSE_USER_ID')
+            user_data = request_data.get('user', {})
+            request_id = request_data.get('ID')
             
-            if success:
-                print(f"Enregistrement réussi pour {user_info['name'] if user_info else self.current_registration_user}")
-                if self.tts_enabled:
-                    message = f"Enregistrement réussi pour {user_info['name'] if user_info else 'utilisateur'}. Bienvenue dans le système."
-                    self.tts.speak(message)
+            full_name = user_data.get('FULL_NAME', 'Utilisateur inconnu')
+            email = user_data.get('EMAIL', '')
+            phone = user_data.get('PHONE', '')
+            profile_info = user_data.get('profile', {})
+            role = profile_info.get('DESCRIPTION_PROFIL', 'USER')
+            
+            print(f"Demande d'enregistrement reçue:")
+            print(f"  - ID Demande: {request_id}")
+            print(f"  - Utilisateur: {full_name}")
+            print(f"  - Email: {email}")
+            print(f"  - Téléphone: {phone}")
+            print(f"  - Rôle: {role}")
+            
+            # Annoncer le début de l'enregistrement
+            if self.tts_enabled:
+                message = f"Demande d'enregistrement pour {full_name}. Veuillez vous positionner devant la caméra."
+                self.tts.speak(message)
+            
+            # Mettre à jour le statut de la demande à "en cours de traitement"
+            # Vous pouvez ajouter une fonction pour mettre à jour le statut si nécessaire
+            # self.api.update_registration_status(request_id, 1)  # 1 = en cours
+            
+            # Démarrer le mode d'enregistrement
+            if self.face_recognition.start_registration_mode(user_id):
+                self.registration_in_progress = True
+                self.current_registration_user = user_id
+                self.current_registration_request_id = request_id  # Garder l'ID de la demande
+                self.registration_announced = True
+                self.registration_start_time = time.time()
                 
-                # Envoyer statut de succès à l'API
-                self.api.send_registration_status(self.current_registration_user, 1)
+                # Supprimer l'attribut instruction_given s'il existe
+                if hasattr(self, 'instruction_given'):
+                    delattr(self, 'instruction_given')
+                
+                print(f"Mode d'enregistrement activé pour {full_name}")
+                
+                # Sauvegarder les informations utilisateur pour usage ultérieur
+                self.current_user_info = {
+                    'name': full_name,
+                    'email': email,
+                    'phone': phone,
+                    'role': role,
+                    'profile': profile_info.get('ROLE', '')
+                }
                 
             else:
-                print(f"Échec de l'enregistrement pour {user_info['name'] if user_info else self.current_registration_user}")
+                print(f"Échec de l'activation du mode d'enregistrement pour {full_name}")
+                # Mettre à jour le statut à "échec"
+                if hasattr(self.api, 'update_registration_status'):
+                    self.api.update_registration_status(request_id, 2)  # 2 = échec
+                
+        except Exception as e:
+            print(f"Erreur lors du traitement de la demande d'enregistrement: {e}")
+            if 'request_id' in locals():
+                if hasattr(self.api, 'update_registration_status'):
+                    self.api.update_registration_status(request_id, 2)  # Échec
+
+    def process_registration_completion(self, success):
+        """Traiter la fin d'un enregistrement - Version mise à jour"""
+        if self.current_registration_user:
+            user_info = getattr(self, 'current_user_info', {})
+            user_name = user_info.get('name', 'Utilisateur inconnu')
+            request_id = getattr(self, 'current_registration_request_id', None)
+            
+            if success:
+                print(f"Enregistrement réussi pour {user_name}")
                 if self.tts_enabled:
-                    message = f"Échec de l'enregistrement pour {user_info['name'] if user_info else 'utilisateur'}. Veuillez réessayer."
+                    message = f"Enregistrement réussi pour {user_name}. Bienvenue dans le système."
                     self.tts.speak(message)
                 
-                # Envoyer statut d'échec à l'API
-                self.api.send_registration_status(self.current_registration_user, 2)
+                # Mettre à jour le statut de la demande à "succès"
+                if request_id and hasattr(self.api, 'update_registration_status'):
+                    self.api.update_registration_status(request_id, 1)  # 1 = succès
+                
+                # Optionnel: Envoyer statut à l'ancienne méthode si elle existe
+                if hasattr(self.api, 'send_registration_status'):
+                    self.api.send_registration_status(self.current_registration_user, 1)
+                
+            else:
+                print(f"Échec de l'enregistrement pour {user_name}")
+                if self.tts_enabled:
+                    message = f"Échec de l'enregistrement pour {user_name}. Veuillez réessayer."
+                    self.tts.speak(message)
+                
+                # Mettre à jour le statut de la demande à "échec"
+                if request_id and hasattr(self.api, 'update_registration_status'):
+                    self.api.update_registration_status(request_id, 2)  # 2 = échec
+                
+                # Optionnel: Envoyer statut à l'ancienne méthode si elle existe
+                if hasattr(self.api, 'send_registration_status'):
+                    self.api.send_registration_status(self.current_registration_user, 2)
             
             # Réinitialiser les variables d'enregistrement
             self.registration_in_progress = False
             self.current_registration_user = None
+            self.current_registration_request_id = None
             self.registration_announced = False
             self.registration_start_time = 0
+            
+            # Nettoyer les informations utilisateur temporaires
+            if hasattr(self, 'current_user_info'):
+                delattr(self, 'current_user_info')
 
     def get_greeting_message(self, name, role):
         """Generate appropriate greeting message in French"""
