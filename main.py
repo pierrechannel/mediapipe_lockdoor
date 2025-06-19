@@ -181,9 +181,9 @@ class FaceDoorLockSystem:
                 if registration_complete and self.registration_in_progress:
                     self.process_registration_completion(True)
                 
-                # Vérifier le timeout d'enregistrement (30 secondes)
+                # Vérifier le timeout d'enregistrement (50 secondes)
                 if (self.registration_in_progress and 
-                    time.time() - self.registration_start_time > 30):
+                    time.time() - self.registration_start_time > 50):
                     print("Timeout d'enregistrement - annulation")
                     self.face_recognition.cancel_registration()
                     self.process_registration_completion(False)
@@ -247,7 +247,9 @@ class FaceDoorLockSystem:
 
 if __name__ == "__main__":
     # Configuration
-    API_BASE_URL = "https://apps.mediabox.bi:26875/"  # Replace with your actual API URL
+    #API_BASE_URL = "https://apps.mediabox.bi:26875/"  # Replace with your actual API URL
+    API_BASE_URL = "http://127.0.0.1:5000/"  # Replace with your actual API URL
+
     API_KEY = "your_api_key_here"  # Replace with your actual API key if required
     
     # TTS Configuration - French language
