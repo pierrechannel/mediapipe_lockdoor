@@ -100,31 +100,60 @@ class APIIntegration:
         
         return []
 
-    def send_registration_status(self, user_id, status):
-        """Send registration status to the API"""
+    def send_registration_status(self, user_id, status, face_encoding_data=None):
+        """Send registration status to the API with proper error handling"""
         try:
+            # Prepare the data payload according to API requirements
             data = {
-                'WAREHOUSE_USER_ID': str(user_id),
-                'REGISTRATION_STATUS': status,  # 1 = success, 2 = failure
-                'DATE_SAVE': datetime.now().isoformat()
+                'WAREHOUSE_USER_ID': int(user_id),  # Ensure it's sent as number
+                'REGISTRATION_STATUS': int(status),  # 1 = success, 2 = failure
+                'DATE_SAVE': datetime.now().isoformat(),
             }
             
-            # Updated endpoint to match your routes
+            # Include face encoding data if registration was successful
+            if status == 1 and face_encoding_data is not None:
+                if isinstance(face_encoding_data, (list, np.ndarray)):
+                    # Convert numpy array to list if needed
+                    if isinstance(face_encoding_data, np.ndarray):
+                        face_encoding_data = face_encoding_data.tolist()
+                    data['FACE_ENCODING_DATA'] = face_encoding_data
+                else:
+                    print("Warning: Invalid face encoding data format")
+            
+            # Make the API request
             response = requests.post(
-                f"{self.api_base_url}/administration/warehouse_users/face/registration-status", 
+                f"{self.api_base_url}/administration/warehouse_users/face/registration-status",
                 json=data,
-                headers=self.headers
+                headers=self.headers,
+                timeout=10  # Add timeout to prevent hanging
             )
             
+            # Process the response
             if response.status_code == 200:
-                status_text = "réussi" if status == 1 else "échec"
-                print(f"Statut d'enregistrement envoyé: {status_text} pour l'utilisateur {user_id}")
-                return True
+                response_data = response.json()
+                if response_data.get('statusCode') == 200:
+                    status_text = "réussi" if status == 1 else "échec"
+                    user_name = response_data.get('result', {}).get('USER_NAME', '')
+                    print(f"Statut d'enregistrement {status_text} pour {user_name} (ID: {user_id})")
+                    return True
+                else:
+                    print(f"API returned error: {response_data.get('message', 'Unknown error')}")
             else:
-                print(f"Échec de l'envoi du statut d'enregistrement: HTTP {response.status_code}")
-                
+                print(f"API request failed with status {response.status_code}")
+                try:
+                    error_details = response.json()
+                    print(f"Error details: {error_details}")
+                except:
+                    print(f"Raw response: {response.text}")
+            
+            return False
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Network error sending registration status: {str(e)}")
+        except ValueError as e:
+            print(f"Error parsing API response: {str(e)}")
         except Exception as e:
-            print(f"Erreur lors de l'envoi du statut d'enregistrement: {e}")
+            print(f"Unexpected error sending registration status: {str(e)}")
         
         return False
 
@@ -207,36 +236,53 @@ class APIIntegration:
         
         return False
     
-    def get_system_mode(self):
-        """Get current system mode (1: normal, 2: registration)"""
+    def get_system_mode_users(self):
+        """Get registration requests with proper response handling
+        
+        Returns:
+            dict: The API response data if successful, None otherwise
+            (including when no data is found)
+        """
         try:
-            # Endpoint pour récupérer le mode actuel
             response = requests.get(
-                f"{self.api_base_url}/administration/warehouse_users/face/get-mode",
-                headers=self.headers
+                f"{self.api_base_url}/administration/warehouse_users/checkmode/allregistration",
+                headers=self.headers,
+                timeout=10
             )
+            response.raise_for_status()
+            data = response.json()
             
-            if response.status_code == 200:
-                data = response.json()
+            # Validate response structure is a dictionary
+            if not isinstance(data, dict):
+                raise ValueError("Invalid API response format - expected a dictionary")
                 
-                # Supposons que l'API retourne {'mode': 1} ou {'mode': 2}
-                current_mode = data.get('mode', 1)  # Par défaut mode normal
-                mode_text = "normal" if current_mode == 1 else "enregistrement"
-                
-                print(f"Mode système actuel: {mode_text} (code: {current_mode})")
-                return current_mode
-                
-            else:
-                print(f"Échec de récupération du mode: HTTP {response.status_code}")
+            # Handle case when no data is found
+            if data.get("message") == "Aucune donnée trouvée" and data.get("result") is None:
+                print("No registration data found")
                 return None
                 
+            # Check status code in response
+            if data.get('statusCode') != 200:
+                error_msg = data.get('message', 'No error message provided')
+                print(f"API Error: {error_msg}")
+                return None
+                
+            # Additional validation - check if expected data fields are present
+            if 'result' not in data:
+                print("API response missing expected 'result' field")
+                return None
+                
+            return data
+            
         except requests.exceptions.RequestException as e:
-            print(f"Erreur de connexion lors de la récupération du mode: {e}")
+            print(f"Request failed: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Invalid JSON response: {str(e)}")
             return None
         except Exception as e:
-            print(f"Erreur lors de la récupération du mode: {e}")
+            print(f"Unexpected error: {str(e)}")
             return None
-    
     def get_user_for_face_system(self, user_id):
         """Get user information for facial recognition system"""
         try:
