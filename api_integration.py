@@ -305,7 +305,9 @@ class APIIntegration:
     def log_access(self, user_id, image_frame, status=1, max_retries=3):
         """Log access attempt to the API with retry logic"""
 
-        url = "http://127.0.0.1:5000/warehouse_acces/create"  # 🔁 Remplacez ceci par l’URL réelle de votre API
+         #url = "http://127.0.0.1:5000/warehouse_acces/create"  # 🔁 Remplacez ceci par l’URL réelle de votre API
+        url = "https://apps.mediabox.bi:26875/warehouse_acces/create"  # 🔁 Remplacez ceci par l’URL réelle de votre API
+
 
         for attempt in range(max_retries):
             try:
