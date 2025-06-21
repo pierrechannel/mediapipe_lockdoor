@@ -280,3 +280,9 @@ NameError: name 'enable_streaming' is not defined
 2025-06-21 16:42:58,577 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
 2025-06-21 16:43:00,217 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
 2025-06-21 16:43:00,318 - INFO - Streaming service stopped
+2025-06-21 16:48:52,150 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:48:52,550 - INFO - System components initialized successfully
+2025-06-21 16:48:53,195 - WARNING - API synchronization failed, using local database
+2025-06-21 16:48:53,196 - INFO - System startup completed successfully
+2025-06-21 16:48:53,197 - INFO - Streaming service started
+2025-06-21 16:51:24,699 - INFO - Streaming service stopped

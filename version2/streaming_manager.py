@@ -256,7 +256,7 @@ class StreamingManager:
         if not payload:
             return False
 
-        url = f"{self.api_base_url}/api/stream/receive"
+        url = f"{self.api_base_url}/administration/streaming/receive_frame"
         
         for attempt in range(self.stream_config['max_retries']):
             try:
