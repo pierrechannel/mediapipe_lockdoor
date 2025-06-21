@@ -1,0 +1,60 @@
+2025-06-21 15:21:52,257 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 15:21:53,722 - INFO - System components initialized successfully
+2025-06-21 15:21:54,569 - WARNING - API synchronization failed, using local database
+2025-06-21 15:21:54,569 - INFO - System startup completed successfully
+2025-06-21 15:51:52,651 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 15:51:53,398 - CRITICAL - Critical system error: name 'enable_streaming' is not defined
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/main.py", line 199, in main
+    door_lock = FaceRecognitionDoorLock(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/face_recognition.py", line 92, in __init__
+    enable_streaming=enable_streaming
+                     ^^^^^^^^^^^^^^^^
+NameError: name 'enable_streaming' is not defined
+2025-06-21 15:51:53,447 - INFO - System cleanup completed
+2025-06-21 15:52:56,702 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 15:52:57,133 - CRITICAL - Critical system error: name 'enable_streaming' is not defined
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/main.py", line 199, in main
+    door_lock = FaceRecognitionDoorLock(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/face_recognition.py", line 92, in __init__
+    enable_streaming=enable_streaming
+                     ^^^^^^^^^^^^^^^^
+NameError: name 'enable_streaming' is not defined
+2025-06-21 15:52:57,151 - INFO - System cleanup completed
+2025-06-21 15:55:09,681 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 15:55:10,327 - CRITICAL - Critical system error: name 'enable_streaming' is not defined
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/main.py", line 199, in main
+    door_lock = FaceRecognitionDoorLock(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/face_recognition.py", line 92, in __init__
+    enable_streaming=enable_streaming
+                     ^^^^^^^^^^^^^^^^
+NameError: name 'enable_streaming' is not defined
+2025-06-21 15:55:10,363 - INFO - System cleanup completed
+2025-06-21 16:01:26,818 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:01:26,831 - CRITICAL - Critical system error: FaceRecognitionDoorLock.__init__() got an unexpected keyword argument 'enable_streaming'
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/main.py", line 199, in main
+    door_lock = FaceRecognitionDoorLock(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: FaceRecognitionDoorLock.__init__() got an unexpected keyword argument 'enable_streaming'
+2025-06-21 16:01:26,832 - INFO - System cleanup completed
+2025-06-21 16:03:39,635 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:03:40,360 - CRITICAL - Critical system error: name 'enable_streaming' is not defined
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/main.py", line 199, in main
+    door_lock = FaceRecognitionDoorLock(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/npc/robotics/mediapipe_lockdoor/version2/face_recognition.py", line 92, in __init__
+    enable_streaming=enable_streaming
+                     ^^^^^^^^^^^^^^^^
+NameError: name 'enable_streaming' is not defined
+2025-06-21 16:03:40,399 - INFO - System cleanup completed
+2025-06-21 16:06:37,149 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:06:37,687 - INFO - System components initialized successfully
+2025-06-21 16:06:38,612 - WARNING - API synchronization failed, using local database
+2025-06-21 16:06:38,616 - INFO - System startup completed successfully
