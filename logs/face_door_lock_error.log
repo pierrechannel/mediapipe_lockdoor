@@ -1,0 +1,15 @@
+2025-06-21 10:43:34,469 - __main__ - ERROR - Fatal error: 'FaceDoorLockSystem' object has no attribute 'cleanup'
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/main.py", line 873, in main
+    system.run()
+  File "/home/npc/robotics/mediapipe_lockdoor/live_streaming.py", line 561, in run_with_streaming
+    self.face_system.cleanup()
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FaceDoorLockSystem' object has no attribute 'cleanup'
+2025-06-21 10:47:04,557 - __main__ - ERROR - Fatal error: 'FaceDoorLockSystem' object has no attribute 'cleanup'
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/main.py", line 873, in main
+  File "/home/npc/robotics/mediapipe_lockdoor/live_streaming.py", line 561, in run_with_streaming
+    self.face_system.cleanup()
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FaceDoorLockSystem' object has no attribute 'cleanup'

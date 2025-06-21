@@ -1,0 +1,94 @@
+2025-06-21 10:27:31,417 - __main__ - INFO - === Face Door Lock System Starting ===
+2025-06-21 10:27:31,417 - __main__ - INFO - Configuration loaded:
+2025-06-21 10:27:31,418 - __main__ - INFO -   API_BASE_URL: https://apps.mediabox.bi:26875/
+2025-06-21 10:27:31,418 - __main__ - INFO -   TTS_ENGINE: pyttsx3
+2025-06-21 10:27:31,418 - __main__ - INFO -   TTS_LANGUAGE: fr
+2025-06-21 10:27:31,418 - __main__ - INFO -   EXTERNAL_SERVER_URL: https://apps.mediabox.bi:26875/administration/streaming/receive_frame
+2025-06-21 10:27:31,418 - __main__ - INFO - === Initializing FaceDoorLockSystem ===
+2025-06-21 10:27:31,419 - __main__ - INFO - API Base URL: https://apps.mediabox.bi:26875/
+2025-06-21 10:27:31,419 - __main__ - INFO - TTS Engine: pyttsx3, Language: fr
+2025-06-21 10:27:31,419 - __main__ - INFO - Streaming Port: 8080
+2025-06-21 10:27:31,419 - __main__ - INFO - External Server URL: https://apps.mediabox.bi:26875/administration/streaming/receive_frame
+2025-06-21 10:27:34,814 - __main__ - INFO - TTS Manager initialized successfully
+2025-06-21 10:27:41,416 - __main__ - INFO - Face Recognition initialized successfully
+2025-06-21 10:27:41,419 - __main__ - INFO - API Integration initialized successfully
+2025-06-21 10:27:41,421 - __main__ - INFO - Door Lock initialized successfully
+2025-06-21 10:27:41,707 - __main__ - INFO - Camera initialized - Resolution: 640.0x480.0, FPS: 30.0
+2025-06-21 10:27:41,708 - __main__ - INFO - Camera initialized successfully
+2025-06-21 10:27:41,708 - __main__ - INFO - External server configured: True
+2025-06-21 10:27:41,710 - __main__ - INFO - Registration monitoring loop started
+2025-06-21 10:27:41,715 - __main__ - INFO - Registration monitoring thread started: RegistrationMonitor
+2025-06-21 10:27:41,732 - __main__ - INFO - Streaming integration started successfully
+2025-06-21 10:27:41,733 - __main__ - INFO - === FaceDoorLockSystem initialization complete ===
+2025-06-21 10:27:41,739 - __main__ - INFO - POST data configured for external server: https://apps.mediabox.bi:26875/administration/streaming/receive_frame
+2025-06-21 10:27:41,740 - __main__ - INFO - System created successfully, starting main loop...
+2025-06-21 10:27:41,807 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.110.16:8080
+2025-06-21 10:27:41,812 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-21 10:37:10,813 - __main__ - INFO - === Starting system cleanup ===
+2025-06-21 10:37:11,478 - __main__ - WARNING - POST failed with status 400 (Total failures: 1)
+2025-06-21 10:37:11,478 - __main__ - WARNING - Failed to notify external server of shutdown: POST failed with status 400
+2025-06-21 10:37:11,496 - __main__ - INFO - === System cleanup completed ===
+2025-06-21 10:42:45,140 - __main__ - INFO - === Starting FaceDoorLockSystem ===
+2025-06-21 10:42:45,141 - __main__ - INFO - Arguments: {'api_url': 'http://localhost:5000', 'api_key': 'test-key', 'debug': False, 'tts_engine': 'pyttsx3', 'tts_language': 'fr', 'stream_port': 26875, 'external_url': None, 'test_mode': False}
+2025-06-21 10:42:45,141 - __main__ - INFO - === Initializing FaceDoorLockSystem ===
+2025-06-21 10:42:45,141 - __main__ - INFO - API Base URL: http://localhost:5000
+2025-06-21 10:42:45,141 - __main__ - INFO - TTS Engine: pyttsx3, Language: fr
+2025-06-21 10:42:45,142 - __main__ - INFO - Streaming Port: 26875
+2025-06-21 10:42:45,142 - __main__ - INFO - External Server URL: None
+2025-06-21 10:42:45,345 - __main__ - INFO - TTS Manager initialized successfully
+2025-06-21 10:42:45,479 - __main__ - INFO - Face Recognition initialized successfully
+2025-06-21 10:42:45,483 - __main__ - INFO - API Integration initialized successfully
+2025-06-21 10:42:45,483 - __main__ - INFO - Door Lock initialized successfully
+2025-06-21 10:42:45,616 - __main__ - INFO - Camera initialized - Resolution: 640.0x480.0, FPS: 30.0
+2025-06-21 10:42:45,617 - __main__ - INFO - Camera initialized successfully
+2025-06-21 10:42:45,618 - __main__ - INFO - External server configured: False
+2025-06-21 10:42:45,619 - __main__ - INFO - Registration monitoring loop started
+2025-06-21 10:42:45,620 - __main__ - INFO - Registration monitoring thread started: RegistrationMonitor
+2025-06-21 10:42:45,630 - __main__ - INFO - Streaming integration started successfully
+2025-06-21 10:42:45,631 - __main__ - INFO - === FaceDoorLockSystem initialization complete ===
+2025-06-21 10:42:45,649 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:26875
+ * Running on http://192.168.110.16:26875
+2025-06-21 10:42:45,652 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-21 10:43:34,469 - __main__ - ERROR - Fatal error: 'FaceDoorLockSystem' object has no attribute 'cleanup'
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/main.py", line 873, in main
+    system.run()
+  File "/home/npc/robotics/mediapipe_lockdoor/live_streaming.py", line 561, in run_with_streaming
+    self.face_system.cleanup()
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FaceDoorLockSystem' object has no attribute 'cleanup'
+2025-06-21 10:43:40,138 - __main__ - INFO - === Starting FaceDoorLockSystem ===
+2025-06-21 10:43:40,138 - __main__ - INFO - Arguments: {'api_url': 'https://apps.mediabox.bi:26875', 'api_key': 'test-key', 'debug': False, 'tts_engine': 'pyttsx3', 'tts_language': 'fr', 'stream_port': 26875, 'external_url': None, 'test_mode': False}
+2025-06-21 10:43:40,138 - __main__ - INFO - === Initializing FaceDoorLockSystem ===
+2025-06-21 10:43:40,138 - __main__ - INFO - API Base URL: https://apps.mediabox.bi:26875
+2025-06-21 10:43:40,139 - __main__ - INFO - TTS Engine: pyttsx3, Language: fr
+2025-06-21 10:43:40,139 - __main__ - INFO - Streaming Port: 26875
+2025-06-21 10:43:40,139 - __main__ - INFO - External Server URL: None
+2025-06-21 10:43:40,362 - __main__ - INFO - TTS Manager initialized successfully
+2025-06-21 10:43:40,513 - __main__ - INFO - Face Recognition initialized successfully
+2025-06-21 10:43:40,514 - __main__ - INFO - API Integration initialized successfully
+2025-06-21 10:43:40,514 - __main__ - INFO - Door Lock initialized successfully
+2025-06-21 10:43:40,647 - __main__ - INFO - Camera initialized - Resolution: 640.0x480.0, FPS: 30.0
+2025-06-21 10:43:40,649 - __main__ - INFO - Camera initialized successfully
+2025-06-21 10:43:40,650 - __main__ - INFO - External server configured: False
+2025-06-21 10:43:40,651 - __main__ - INFO - Registration monitoring loop started
+2025-06-21 10:43:40,652 - __main__ - INFO - Registration monitoring thread started: RegistrationMonitor
+2025-06-21 10:43:40,664 - __main__ - INFO - Streaming integration started successfully
+2025-06-21 10:43:40,670 - __main__ - INFO - === FaceDoorLockSystem initialization complete ===
+2025-06-21 10:43:40,672 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:26875
+ * Running on http://192.168.110.16:26875
+2025-06-21 10:43:40,673 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-21 10:47:04,557 - __main__ - ERROR - Fatal error: 'FaceDoorLockSystem' object has no attribute 'cleanup'
+Traceback (most recent call last):
+  File "/home/npc/robotics/mediapipe_lockdoor/main.py", line 873, in main
+  File "/home/npc/robotics/mediapipe_lockdoor/live_streaming.py", line 561, in run_with_streaming
+    self.face_system.cleanup()
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FaceDoorLockSystem' object has no attribute 'cleanup'
