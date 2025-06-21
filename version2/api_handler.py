@@ -1,6 +1,7 @@
 import requests
 import json
 import cv2
+import numpy as np
 
 class APIHandler:
     def __init__(self, api_base_url=None, headers=None):
@@ -73,9 +74,9 @@ class APIHandler:
                     print("Failed to encode image")
                     continue
 
-                # Check and handle image size (max 3MB)
+                # Check and handle image size (max 2MB)
                 image_bytes = buffer.tobytes()
-                if len(image_bytes) > 3000000:
+                if len(image_bytes) > 2000000:
                     # Resize image to reduce size while maintaining aspect ratio
                     scale_factor = (3000000 / len(image_bytes)) ** 0.5
                     small_frame = cv2.resize(image_frame, None, fx=scale_factor, fy=scale_factor)
