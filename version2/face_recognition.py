@@ -4,14 +4,51 @@ import pickle
 import os
 from datetime import datetime
 import time
+import threading
+import argparse
 from face_processing import FaceProcessor
 from api_handler import APIHandler
 
+# Text-to-speech imports
+try:
+    import pyttsx3
+    TTS_AVAILABLE = True
+except ImportError:
+    print("Warning: pyttsx3 not installed. Install with: pip install pyttsx3")
+    TTS_AVAILABLE = False
+
 class FaceRecognitionDoorLock:
-    def __init__(self, api_base_url=None, api_headers=None):
+    def __init__(self, api_base_url=None, api_headers=None, headless=False, enable_tts=True):
         # Initialize components
         self.api_handler = APIHandler(api_base_url, api_headers)
         self.face_processor = FaceProcessor()
+        
+        # System configuration
+        self.headless = headless
+        self.enable_tts = enable_tts and TTS_AVAILABLE
+        
+        # Initialize Text-to-Speech
+        if self.enable_tts:
+            try:
+                self.tts_engine = pyttsx3.init()
+                self.tts_engine.setProperty('rate', 150)  # Speed of speech
+                self.tts_engine.setProperty('volume', 0.8)  # Volume (0.0 to 1.0)
+                
+                # Get available voices and set a pleasant voice
+                voices = self.tts_engine.getProperty('voices')
+                if voices:
+                    # Try to find a female voice first, otherwise use the first available
+                    for voice in voices:
+                        if 'female' in voice.name.lower() or 'woman' in voice.name.lower():
+                            self.tts_engine.setProperty('voice', voice.id)
+                            break
+                    else:
+                        self.tts_engine.setProperty('voice', voices[0].id)
+                
+                print("Text-to-speech initialized successfully")
+            except Exception as e:
+                print(f"Failed to initialize text-to-speech: {e}")
+                self.enable_tts = False
         
         # Storage for authorized faces
         self.authorized_faces = {}
@@ -34,6 +71,50 @@ class FaceRecognitionDoorLock:
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
             raise RuntimeError("Cannot open camera")
+        
+        # TTS queue for threaded speech
+        self.tts_queue = []
+        self.tts_lock = threading.Lock()
+        if self.enable_tts:
+            self.start_tts_thread()
+
+    def speak(self, text, priority=False):
+        """Add text to TTS queue or speak immediately if priority"""
+        if not self.enable_tts:
+            return
+        
+        with self.tts_lock:
+            if priority:
+                # Clear queue and speak immediately
+                self.tts_queue.clear()
+                self.tts_queue.append(text)
+            else:
+                self.tts_queue.append(text)
+
+    def start_tts_thread(self):
+        """Start TTS thread for non-blocking speech"""
+        def tts_worker():
+            while True:
+                try:
+                    with self.tts_lock:
+                        if self.tts_queue:
+                            text = self.tts_queue.pop(0)
+                        else:
+                            text = None
+                    
+                    if text:
+                        print(f"🔊 Speaking: {text}")
+                        self.tts_engine.say(text)
+                        self.tts_engine.runAndWait()
+                    else:
+                        time.sleep(0.1)  # Short sleep when queue is empty
+                        
+                except Exception as e:
+                    print(f"TTS error: {e}")
+                    time.sleep(1)
+        
+        tts_thread = threading.Thread(target=tts_worker, daemon=True)
+        tts_thread.start()
 
     def sync_api_users(self):
         """Synchronize users from API with local authorized faces"""
@@ -97,6 +178,7 @@ class FaceRecognitionDoorLock:
             # Check if this user already has face encoding
             if user_name not in self.authorized_faces:
                 print(f"User {user_name} needs face registration")
+                self.speak(f"New user {user_name} detected. Face registration required.")
                 return True
             else:
                 print(f"User {user_name} already has face encoding")
@@ -107,64 +189,85 @@ class FaceRecognitionDoorLock:
     def run_door_lock_system(self):
         """Main door lock system loop"""
         print("Face Recognition Door Lock System Started")
-        print("Press 'q' to quit")
+        if self.headless:
+            print("Running in headless mode - no GUI display")
+        else:
+            print("Press 'q' to quit")
+        
+        self.speak("Face recognition door lock system started.", priority=True)
         
         consecutive_recognitions = {}
         recognition_threshold_count = 3  # Need 3 consecutive recognitions
         
-        while True:
-            # Check for API users periodically
-            current_time = time.time()
-            if current_time - self.last_mode_check > self.mode_check_interval:
-                if self.sync_api_users():
-                    # New API users detected, attempt registration
-                    for user_id, user_info in self.api_users.items():
-                        if user_info.get('status') == 'pending':
-                            self.register_api_user(user_id)
-                self.last_mode_check = current_time
+        # For headless mode, we need a way to stop the loop
+        if self.headless:
+            print("Press Ctrl+C to stop the system")
+        
+        try:
+            while True:
+                # Check for API users periodically
+                current_time = time.time()
+                if current_time - self.last_mode_check > self.mode_check_interval:
+                    if self.sync_api_users():
+                        # New API users detected, attempt registration
+                        for user_id, user_info in self.api_users.items():
+                            if user_info.get('status') == 'pending':
+                                self.register_api_user(user_id)
+                    self.last_mode_check = current_time
 
-            ret, frame = self.cap.read()
-            if not ret:
-                continue
-            
-            frame = cv2.flip(frame, 1)
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # Process frame for recognition
-            recognition_result = self.face_processor.process_frame_for_recognition(
-                frame, rgb_frame, self.authorized_faces, self.recognition_threshold,
-                consecutive_recognitions, recognition_threshold_count
-            )
-            
-            if recognition_result:
-                person_name, similarity, bbox = recognition_result
-                self.process_access_attempt(frame, person_name, similarity)
+                ret, frame = self.cap.read()
+                if not ret:
+                    continue
                 
-                if person_name:
-                    # Check if should unlock
-                    if consecutive_recognitions[person_name] >= recognition_threshold_count:
-                        if self.unlock_door(person_name):
-                            cv2.putText(frame, f"UNLOCKED: {person_name}", 
-                                      (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
-                                      0.8, (0, 255, 0), 2)
-                        else:
-                            cv2.putText(frame, f"DOOR OPEN: {person_name}", 
-                                      (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
-                                      0.8, (0, 255, 255), 2)
-            
-            # Display system info
-            cv2.putText(frame, f"Authorized Users: {len(self.authorized_faces)}", 
-                      (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            cv2.putText(frame, f"API Users: {len(self.api_users)}", 
-                      (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            cv2.putText(frame, "Face Recognition Door Lock", 
-                      (10, frame.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            
-            cv2.imshow('Door Lock System', frame)
-            
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                break
+                frame = cv2.flip(frame, 1)
+                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
+                # Process frame for recognition
+                recognition_result = self.face_processor.process_frame_for_recognition(
+                    frame, rgb_frame, self.authorized_faces, self.recognition_threshold,
+                    consecutive_recognitions, recognition_threshold_count
+                )
+                
+                if recognition_result:
+                    person_name, similarity, bbox = recognition_result
+                    self.process_access_attempt(frame, person_name, similarity)
+                    
+                    if person_name:
+                        # Check if should unlock
+                        if consecutive_recognitions[person_name] >= recognition_threshold_count:
+                            if self.unlock_door(person_name):
+                                if not self.headless:
+                                    cv2.putText(frame, f"UNLOCKED: {person_name}", 
+                                              (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
+                                              0.8, (0, 255, 0), 2)
+                            else:
+                                if not self.headless:
+                                    cv2.putText(frame, f"DOOR OPEN: {person_name}", 
+                                              (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
+                                              0.8, (0, 255, 255), 2)
+                
+                # Display system info (only if not headless)
+                if not self.headless:
+                    cv2.putText(frame, f"Authorized Users: {len(self.authorized_faces)}", 
+                              (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    cv2.putText(frame, f"API Users: {len(self.api_users)}", 
+                              (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    cv2.putText(frame, "Face Recognition Door Lock", 
+                              (10, frame.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    
+                    cv2.imshow('Door Lock System', frame)
+                    
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord('q'):
+                        break
+                else:
+                    # In headless mode, just a small delay to prevent CPU overload
+                    time.sleep(0.03)  # ~30 FPS equivalent
+                    
+        except KeyboardInterrupt:
+            print("\nSystem stopped by user")
+            self.speak("System shutting down.", priority=True)
+            time.sleep(2)  # Give time for TTS to finish
 
     def register_api_user(self, user_id):
         """Register face for a specific API user"""
@@ -176,16 +279,24 @@ class FaceRecognitionDoorLock:
         user_name = user_info['name']
         
         print(f"Registering face for API user: {user_name}")
+        self.speak(f"Please register face for {user_name}")
         return self.add_authorized_face(user_name)
 
     def add_authorized_face(self, name):
         """Add a new authorized face to the system"""
         print(f"Adding authorized face for: {name}")
-        print("Look at the camera and press SPACE when ready, or 'q' to cancel")
+        self.speak(f"Registering face for {name}. Please look at the camera.")
+        
+        if not self.headless:
+            print("Look at the camera and press SPACE when ready, or 'q' to cancel")
+        else:
+            print("Look at the camera. Face will be captured automatically when detected.")
         
         face_samples = []
         sample_count = 0
         required_samples = 5
+        auto_capture_delay = 1.0  # seconds between auto captures in headless mode
+        last_capture_time = 0
         
         while sample_count < required_samples:
             ret, frame = self.cap.read()
@@ -198,26 +309,47 @@ class FaceRecognitionDoorLock:
             # Detect faces and get face encodings
             face_encoding = self.face_processor.process_frame_for_registration(frame, rgb_frame)
             
+            current_time = time.time()
+            
             if face_encoding is not None:
-                # Show status
-                cv2.putText(frame, f"Sample {sample_count + 1}/{required_samples}", 
-                          (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                cv2.putText(frame, "Press SPACE to capture", 
-                          (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            
-            cv2.imshow('Add Authorized Face', frame)
-            key = cv2.waitKey(1) & 0xFF
-            
-            if key == ord(' ') and face_encoding is not None:
-                face_samples.append(face_encoding)
-                sample_count += 1
-                print(f"Captured sample {sample_count}/{required_samples}")
-            elif key == ord('q'):
-                print("Cancelled adding face")
-                cv2.destroyWindow('Add Authorized Face')
-                return False
+                if not self.headless:
+                    # Show status on screen
+                    cv2.putText(frame, f"Sample {sample_count + 1}/{required_samples}", 
+                              (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    cv2.putText(frame, "Press SPACE to capture", 
+                              (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    
+                    cv2.imshow('Add Authorized Face', frame)
+                    key = cv2.waitKey(1) & 0xFF
+                    
+                    if key == ord(' '):
+                        face_samples.append(face_encoding)
+                        sample_count += 1
+                        print(f"Captured sample {sample_count}/{required_samples}")
+                        self.speak(f"Sample {sample_count} captured")
+                    elif key == ord('q'):
+                        print("Cancelled adding face")
+                        self.speak("Face registration cancelled")
+                        cv2.destroyWindow('Add Authorized Face')
+                        return False
+                else:
+                    # Headless mode - auto capture with delay
+                    if current_time - last_capture_time > auto_capture_delay:
+                        face_samples.append(face_encoding)
+                        sample_count += 1
+                        last_capture_time = current_time
+                        print(f"Auto-captured sample {sample_count}/{required_samples}")
+                        self.speak(f"Sample {sample_count} captured")
+            else:
+                if self.headless and sample_count == 0:
+                    # Provide guidance in headless mode
+                    if current_time - last_capture_time > 3:  # Every 3 seconds
+                        print("No face detected. Please position yourself in front of the camera.")
+                        self.speak("Please position yourself in front of the camera")
+                        last_capture_time = current_time
         
-        cv2.destroyWindow('Add Authorized Face')
+        if not self.headless:
+            cv2.destroyWindow('Add Authorized Face')
         
         # Average the face samples
         if face_samples:
@@ -241,8 +373,10 @@ class FaceRecognitionDoorLock:
                     self.api_users[user_id]['status'] = 'registered'
                     self.save_api_users()  # Save updated status
                     print(f"Successfully registered {name} with server")
+                    self.speak(f"Successfully registered {name}")
                 else:
                     print(f"Warning: Failed to update server for {name}")
+                    self.speak(f"Registration completed locally for {name}")
             
             print(f"Successfully added {name} to authorized faces")
             return True
@@ -266,12 +400,11 @@ class FaceRecognitionDoorLock:
             # If not found in API users, handle gracefully
             if log_user_id is None:
                 print(f"Warning: No user ID found for {person_name}")
-                # You can either skip logging or use a default value
-                # For now, we'll use a placeholder but you should decide the behavior
                 log_user_id = -1  # Use -1 to indicate unknown registered user
         else:
-            # For unrecognized faces, you might want to use a special ID or None
+            # For unrecognized faces
             log_user_id = 0  # Use 0 for unrecognized faces
+            self.speak("Access denied. Unauthorized person detected.")
         
         # Only log if we have a valid user ID or it's an unrecognized attempt
         if log_user_id is not None:
@@ -295,6 +428,7 @@ class FaceRecognitionDoorLock:
             self.last_unlock_time = current_time
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(f"🔓 DOOR UNLOCKED for {person_name} at {timestamp}")
+            self.speak(f"Welcome {person_name}. Door unlocked.", priority=True)
             return True
         return False
 
@@ -349,6 +483,59 @@ class FaceRecognitionDoorLock:
 
     def cleanup(self):
         """Cleanup resources"""
+        print("Cleaning up resources...")
+        self.speak("System shutting down", priority=True)
+        time.sleep(1)  # Give time for final TTS
+        
         self.cap.release()
-        cv2.destroyAllWindows()
+        if not self.headless:
+            cv2.destroyAllWindows()
         self.face_processor.cleanup()
+        
+        if self.enable_tts:
+            try:
+                self.tts_engine.stop()
+            except:
+                pass
+
+# Example usage and main function
+def main():
+    parser = argparse.ArgumentParser(description='Face Recognition Door Lock System')
+    parser.add_argument('--headless', action='store_true', 
+                       help='Run without GUI display (headless mode)')
+    parser.add_argument('--no-tts', action='store_true', 
+                       help='Disable text-to-speech functionality')
+    parser.add_argument('--api-url', type=str, 
+                       help='Base URL for the API')
+    
+    args = parser.parse_args()
+    
+    # Configuration
+    api_base_url = args.api_url or "http://your-api-server.com"
+    api_headers = {
+        "Authorization": "Bearer your-token-here",
+        "Content-Type": "application/json"
+    }
+    
+    try:
+        # Initialize the door lock system
+        door_lock = FaceRecognitionDoorLock(
+            api_base_url=api_base_url,
+            api_headers=api_headers,
+            headless=args.headless,
+            enable_tts=not args.no_tts
+        )
+        
+        # Run the system
+        door_lock.run_door_lock_system()
+        
+    except KeyboardInterrupt:
+        print("\nReceived interrupt signal")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if 'door_lock' in locals():
+            door_lock.cleanup()
+
+if __name__ == "__main__":
+    main()
