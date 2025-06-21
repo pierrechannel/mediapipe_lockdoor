@@ -58,3 +58,225 @@ NameError: name 'enable_streaming' is not defined
 2025-06-21 16:06:37,687 - INFO - System components initialized successfully
 2025-06-21 16:06:38,612 - WARNING - API synchronization failed, using local database
 2025-06-21 16:06:38,616 - INFO - System startup completed successfully
+2025-06-21 16:32:04,978 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:32:05,801 - INFO - System components initialized successfully
+2025-06-21 16:32:06,702 - WARNING - API synchronization failed, using local database
+2025-06-21 16:32:06,703 - INFO - System startup completed successfully
+2025-06-21 16:32:06,703 - INFO - Streaming service started
+2025-06-21 16:32:11,251 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:13,253 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:15,278 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:16,372 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:18,265 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:20,176 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:20,760 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:22,362 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:23,946 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:24,885 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:26,837 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:28,676 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:29,340 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:30,946 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:32,559 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:33,654 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:35,735 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:37,671 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:38,266 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:39,912 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:41,510 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:42,617 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:44,597 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:46,568 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:47,228 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:48,854 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:50,611 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:52,009 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:54,365 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:56,669 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:32:59,462 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:01,074 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:02,757 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:03,892 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:05,932 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:08,044 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:08,816 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:10,544 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:12,299 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:13,629 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:15,730 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:17,792 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:18,553 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:20,298 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:22,133 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:23,472 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:25,771 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:27,891 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:28,590 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:30,256 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:31,935 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:33,109 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:35,104 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:37,191 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:37,827 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:38,055 - INFO - Streaming service stopped
+2025-06-21 16:33:39,450 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:33:41,290 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:37:01,071 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:37:01,755 - INFO - System components initialized successfully
+2025-06-21 16:37:02,427 - WARNING - API synchronization failed, using local database
+2025-06-21 16:37:02,428 - INFO - System startup completed successfully
+2025-06-21 16:37:02,430 - INFO - Streaming service started
+2025-06-21 16:37:12,866 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:13,869 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:14,871 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:15,860 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:16,862 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:17,866 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:18,758 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:19,760 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:20,763 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:21,832 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:22,834 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:23,837 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:24,734 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:25,736 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:26,738 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:27,642 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:28,645 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:29,655 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:30,505 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:31,507 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:32,508 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:33,515 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:34,517 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:35,519 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:36,594 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:37,596 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:38,597 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:39,557 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:40,559 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:41,561 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:42,447 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:43,449 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:44,450 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:45,418 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:46,420 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:47,422 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:48,513 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:49,514 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:50,515 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:51,523 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:52,525 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:53,526 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:54,520 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:55,522 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:56,523 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:37:57,579 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:37:58,580 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:37:59,581 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:00,554 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:01,555 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:02,556 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:03,481 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:04,487 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:05,489 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:06,473 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:07,475 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:08,476 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:09,631 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:10,634 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:11,637 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:12,759 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:13,761 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:14,763 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:15,927 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:16,931 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:17,932 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:18,892 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:19,895 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:20,897 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:21,905 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:22,907 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:23,909 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:24,841 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:25,843 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:26,844 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:27,832 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:28,835 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:29,839 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:30,854 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:31,856 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:32,858 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:33,845 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:34,847 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:35,850 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:36,868 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:37,871 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:38,874 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:39,779 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:40,781 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:41,782 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:42,710 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:43,712 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:44,716 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:45,607 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:46,608 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:47,614 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:48,626 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:49,628 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:50,632 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:51,532 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:52,533 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:53,535 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:54,462 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:55,464 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:56,466 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:38:57,471 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:38:58,472 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:38:59,473 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:39:00,469 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:39:01,472 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:39:02,474 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:39:03,526 - ERROR - Unexpected error in stream POST (attempt 1): Object of type datetime is not JSON serializable
+2025-06-21 16:39:04,529 - ERROR - Unexpected error in stream POST (attempt 2): Object of type datetime is not JSON serializable
+2025-06-21 16:39:05,530 - ERROR - Unexpected error in stream POST (attempt 3): Object of type datetime is not JSON serializable
+2025-06-21 16:39:05,631 - INFO - Streaming service stopped
+2025-06-21 16:42:07,521 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:42:07,943 - INFO - System components initialized successfully
+2025-06-21 16:42:08,822 - WARNING - API synchronization failed, using local database
+2025-06-21 16:42:08,823 - INFO - System startup completed successfully
+2025-06-21 16:42:08,824 - INFO - Streaming service started
+2025-06-21 16:42:12,413 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:14,484 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:16,647 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:17,643 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:19,627 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:21,602 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:22,247 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:23,886 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:25,486 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:26,599 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:28,610 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:30,588 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:31,172 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:32,813 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:34,402 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:35,301 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:37,147 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:39,036 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:39,669 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:41,289 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:42,932 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:43,845 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:45,722 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:47,621 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:48,240 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:49,890 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:51,579 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:52,523 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:54,346 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:56,266 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:56,958 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:42:58,577 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:43:00,217 - WARNING - Stream POST failed with status 404: {"statusCode":404,"httpStatus":"NOT_FOUND","message":"Route non trouvé","result":[]}
+2025-06-21 16:43:00,318 - INFO - Streaming service stopped

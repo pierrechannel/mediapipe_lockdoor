@@ -228,10 +228,20 @@ class StreamingManager:
             self.stats['stats_failed'] += 1
 
     def _post_stream_data(self, frame: Optional[str] = None, 
-                         timestamp: Optional[str] = None,
-                         stats: Optional[Dict] = None,
-                         detection_data: Optional[Dict] = None) -> bool:
+                     timestamp: Optional[str] = None,
+                     stats: Optional[Dict] = None,
+                     detection_data: Optional[Dict] = None) -> bool:
         """Post streaming data to server with retry logic"""
+    
+        def convert_datetime(obj):
+            """Helper function to convert datetime objects to ISO format strings"""
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            elif isinstance(obj, dict):
+                return {k: convert_datetime(v) for k, v in obj.items()}
+            elif isinstance(obj, (list, tuple)):
+                return [convert_datetime(v) for v in obj]
+            return obj
         
         payload = {}
         if frame:
@@ -239,9 +249,9 @@ class StreamingManager:
         if timestamp:
             payload['timestamp'] = timestamp
         if stats:
-            payload['stats'] = stats
+            payload['stats'] = convert_datetime(stats)
         if detection_data:
-            payload['detection_data'] = detection_data
+            payload['detection_data'] = convert_datetime(detection_data)
             
         if not payload:
             return False

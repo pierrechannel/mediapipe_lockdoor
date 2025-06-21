@@ -6,6 +6,7 @@ import argparse
 import logging
 from datetime import datetime
 from face_recognition import FaceRecognitionDoorLock
+from streaming_manager import StreamingManager
 
 def check_dependencies():
     """Comprehensive dependency verification with version checks"""
@@ -18,7 +19,8 @@ def check_dependencies():
     
     # Optional dependencies
     optional = {
-        'pyttsx3': ('pyttsx3', '2.90')  # For text-to-speech
+        'pyttsx3': ('pyttsx3', '2.90'),  # For text-to-speech
+        'streaming_manager': ('streaming_manager', '1.0')
     }
     
     missing = []
@@ -78,7 +80,14 @@ def load_config():
         'SYSTEM_SETTINGS': {
             'recognition_threshold': float(os.getenv('RECOGNITION_THRESHOLD', '0.65')),
             'unlock_duration': int(os.getenv('UNLOCK_DURATION', '3')),
-            'mode_check_interval': int(os.getenv('MODE_CHECK_INTERVAL', '15'))
+            'mode_check_interval': int(os.getenv('MODE_CHECK_INTERVAL', '15')),
+            'enable_streaming': os.getenv('ENABLE_STREAMING', 'true').lower() == 'true'
+        },
+        'STREAMING_SETTINGS': {
+            'frame_interval': float(os.getenv('STREAM_FRAME_INTERVAL', '0.5')),
+            'stats_interval': float(os.getenv('STREAM_STATS_INTERVAL', '2.0')),
+            'compression_quality': int(os.getenv('STREAM_COMPRESSION_QUALITY', '80')),
+            'frame_resize': tuple(map(int, os.getenv('STREAM_FRAME_SIZE', '640,480').split(',')))
         }
     }
     
@@ -116,7 +125,7 @@ def setup_logging(debug_mode=False, headless=False):
         logger = logging.getLogger()
         logger.info("Headless mode: All output will be logged to file")
 
-def print_system_banner(headless=False, enable_tts=True):
+def print_system_banner(headless=False, enable_tts=True, enable_streaming=True):
     """Print system initialization banner"""
     banner = [
         "="*70,
@@ -124,6 +133,7 @@ def print_system_banner(headless=False, enable_tts=True):
         "="*70,
         f"🖥️  Mode: {'Headless' if headless else 'GUI'}",
         f"🔊 TTS: {'Enabled' if enable_tts else 'Disabled'}",
+        f"📹 Streaming: {'Enabled' if enable_streaming else 'Disabled'}",
         f"📅 Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         "="*70
     ]
@@ -138,9 +148,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python main.py                    # Run with GUI and TTS
+  python main.py                    # Run with GUI, TTS and streaming
   python main.py --headless         # Run without GUI (server mode)
   python main.py --no-tts           # Run without text-to-speech
+  python main.py --no-streaming     # Run without video streaming
   python main.py --debug            # Enable debug logging
   python main.py --headless --debug # Headless with debug logging
         """
@@ -150,6 +161,8 @@ Examples:
                        help='Run without GUI display (headless mode)')
     parser.add_argument('--no-tts', action='store_true',
                        help='Disable text-to-speech functionality')
+    parser.add_argument('--no-streaming', action='store_true',
+                       help='Disable video streaming functionality')
     parser.add_argument('--debug', action='store_true',
                        help='Enable debug logging')
     parser.add_argument('--api-url', type=str,
@@ -166,7 +179,9 @@ Examples:
     logger = logging.getLogger(__name__)
     
     # Print system banner
-    print_system_banner(headless=args.headless, enable_tts=not args.no_tts)
+    print_system_banner(headless=args.headless, 
+                       enable_tts=not args.no_tts,
+                       enable_streaming=not args.no_streaming)
     
     # Check dependencies
     print("\n🔍 Checking system dependencies...")
@@ -194,17 +209,24 @@ Examples:
     try:
         # Initialize system with configuration
         print("\n🚀 Initializing system components...")
+        enable_streaming = config['SYSTEM_SETTINGS']['enable_streaming'] and not args.no_streaming
+        
         door_lock = FaceRecognitionDoorLock(
             api_base_url=config['API_BASE_URL'],
             api_headers=config['API_HEADERS'],
             headless=args.headless,
-            enable_tts=not args.no_tts
+            enable_tts=not args.no_tts,
+            enable_streaming=enable_streaming
         )
         
         # Apply system settings
         door_lock.recognition_threshold = config['SYSTEM_SETTINGS']['recognition_threshold']
         door_lock.unlock_duration = config['SYSTEM_SETTINGS']['unlock_duration']
         door_lock.mode_check_interval = config['SYSTEM_SETTINGS']['mode_check_interval']
+        
+        # Apply streaming settings if enabled
+        if enable_streaming:
+            door_lock.streaming_manager.stream_config.update(config['STREAMING_SETTINGS'])
         
         logger.info("System components initialized successfully")
         
@@ -240,6 +262,11 @@ Examples:
         print(f"   🔄 API check interval: {door_lock.mode_check_interval}s")
         print(f"   👥 Authorized faces: {len(door_lock.authorized_faces)}")
         print(f"   🌐 API users: {len(door_lock.api_users)}")
+        if enable_streaming:
+            print(f"   📹 Streaming: Enabled (Frame: {config['STREAMING_SETTINGS']['frame_interval']}s, "
+                  f"Quality: {config['STREAMING_SETTINGS']['compression_quality']}%)")
+        else:
+            print("   📹 Streaming: Disabled")
         
         if not args.headless:
             print(f"\n📹 Camera feed will open in new window...")

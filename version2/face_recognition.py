@@ -8,6 +8,7 @@ import threading
 import argparse
 from face_processing import FaceProcessor
 from api_handler import APIHandler
+from streaming_manager import StreamingManager
 
 # Text-to-speech imports
 try:
@@ -18,7 +19,7 @@ except ImportError:
     TTS_AVAILABLE = False
 
 class FaceRecognitionDoorLock:
-    def __init__(self, api_base_url=None, api_headers=None, headless=False, enable_tts=True):
+    def __init__(self, api_base_url=None, api_headers=None, headless=False, enable_tts=True, enable_streaming=True):
         # Initialize components
         self.api_handler = APIHandler(api_base_url, api_headers)
         self.face_processor = FaceProcessor()
@@ -77,6 +78,20 @@ class FaceRecognitionDoorLock:
         self.tts_lock = threading.Lock()
         if self.enable_tts:
             self.start_tts_thread()
+        self.enable_streaming = enable_streaming
+        self.streaming_manager = StreamingManager(
+        api_base_url=api_base_url,
+        api_headers=api_headers,
+        enable_streaming=enable_streaming
+    )
+    
+    def start_system(self):
+        """Start all system components including streaming"""
+        # Start streaming service
+        self.streaming_manager.start_streaming()
+        print("Face recognition system with streaming started")
+        if self.enable_tts:
+            self.speak("System started with streaming enabled", priority=True)
 
     def speak(self, text, priority=False):
         """Add text to TTS queue or speak immediately if priority"""
@@ -188,6 +203,7 @@ class FaceRecognitionDoorLock:
 
     def run_door_lock_system(self):
         """Main door lock system loop"""
+        self.start_system()  # Make sure this starts the streaming
         print("Face Recognition Door Lock System Started")
         if self.headless:
             print("Running in headless mode - no GUI display")
@@ -248,6 +264,7 @@ class FaceRecognitionDoorLock:
                 
                 # Display system info (only if not headless)
                 if not self.headless:
+                    streaming_status = self.streaming_manager.get_streaming_status()
                     cv2.putText(frame, f"Authorized Users: {len(self.authorized_faces)}", 
                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                     cv2.putText(frame, f"API Users: {len(self.api_users)}", 
@@ -394,17 +411,35 @@ class FaceRecognitionDoorLock:
             for uid, user_info in self.api_users.items():
                 if user_info['name'] == person_name:
                     log_user_id = uid
-                    print(f"Found user ID {uid} for {person_name}")
                     break
             
-            # If not found in API users, handle gracefully
             if log_user_id is None:
-                print(f"Warning: No user ID found for {person_name}")
                 log_user_id = -1  # Use -1 to indicate unknown registered user
         else:
-            # For unrecognized faces
             log_user_id = 0  # Use 0 for unrecognized faces
             self.speak("Access denied. Unauthorized person detected.")
+        
+        # Prepare detection data for streaming
+        detection_data = {
+            'person_name': person_name,
+            'similarity': float(similarity) if similarity else None,
+            'access_granted': bool(person_name),
+            'user_id': log_user_id,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Add frame to streaming queue
+        self.streaming_manager.add_frame(frame, detection_data)
+        
+        # Update streaming stats
+        self.streaming_manager.update_stats(
+            faces_detected=1 if person_name else 0,
+            recognition_result=bool(person_name),
+            additional_stats={
+                'access_attempt': True,
+                'access_status': status
+            }
+        )
         
         # Only log if we have a valid user ID or it's an unrecognized attempt
         if log_user_id is not None:
@@ -484,6 +519,7 @@ class FaceRecognitionDoorLock:
     def cleanup(self):
         """Cleanup resources"""
         print("Cleaning up resources...")
+        self.streaming_manager.stop_streaming()
         self.speak("System shutting down", priority=True)
         time.sleep(1)  # Give time for final TTS
         
