@@ -286,3 +286,9 @@ NameError: name 'enable_streaming' is not defined
 2025-06-21 16:48:53,196 - INFO - System startup completed successfully
 2025-06-21 16:48:53,197 - INFO - Streaming service started
 2025-06-21 16:51:24,699 - INFO - Streaming service stopped
+2025-06-21 16:55:10,134 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-21 16:55:10,486 - INFO - System components initialized successfully
+2025-06-21 16:55:11,134 - WARNING - API synchronization failed, using local database
+2025-06-21 16:55:11,135 - INFO - System startup completed successfully
+2025-06-21 16:55:11,136 - INFO - Streaming service started
+2025-06-21 16:57:13,078 - INFO - Streaming service stopped

@@ -5,18 +5,11 @@ import os
 from datetime import datetime
 import time
 import threading
-import argparse
+import subprocess
 from face_processing import FaceProcessor
 from api_handler import APIHandler
 from streaming_manager import StreamingManager
-
-# Text-to-speech imports
-try:
-    import pyttsx3
-    TTS_AVAILABLE = True
-except ImportError:
-    print("Warning: pyttsx3 not installed. Install with: pip install pyttsx3")
-    TTS_AVAILABLE = False
+from flite_tts import FliteTTS
 
 class FaceRecognitionDoorLock:
     def __init__(self, api_base_url=None, api_headers=None, headless=False, enable_tts=True, enable_streaming=True):
@@ -26,36 +19,35 @@ class FaceRecognitionDoorLock:
         
         # System configuration
         self.headless = headless
-        self.enable_tts = enable_tts and TTS_AVAILABLE
+        self.enable_tts = enable_tts
         
-        # Initialize Text-to-Speech
+        # Initialize Flite Text-to-Speech
         if self.enable_tts:
             try:
-                self.tts_engine = pyttsx3.init()
-                self.tts_engine.setProperty('rate', 150)  # Speed of speech
-                self.tts_engine.setProperty('volume', 0.8)  # Volume (0.0 to 1.0)
+                self.tts = FliteTTS(
+                    voice='slt',  # Default voice
+                    speech_rate=170,  # Normal speech rate
+                    volume=0.8,  # 80% volume
+                    timeout=10  # 10 second timeout
+                )
                 
-                # Get available voices and set a pleasant voice
-                voices = self.tts_engine.getProperty('voices')
-                if voices:
-                    # Try to find a female voice first, otherwise use the first available
-                    for voice in voices:
-                        if 'female' in voice.name.lower() or 'woman' in voice.name.lower():
-                            self.tts_engine.setProperty('voice', voice.id)
-                            break
-                    else:
-                        self.tts_engine.setProperty('voice', voices[0].id)
-                
-                print("Text-to-speech initialized successfully")
+                if not self.tts.flite_available:
+                    print("Flite TTS not available - disabling")
+                    self.enable_tts = False
+                else:
+                    print("Flite TTS initialized successfully")
+                    # Test the voice
+                    self.tts.test_voice()
+                    
             except Exception as e:
-                print(f"Failed to initialize text-to-speech: {e}")
+                print(f"Failed to initialize Flite TTS: {e}")
                 self.enable_tts = False
         
         # Storage for authorized faces
         self.authorized_faces = {}
         self.api_users = {}  # Store users from API
         self.face_encodings_file = "authorized_faces.pkl"
-        self.api_users_file = "api_users.pkl"  # Add persistence for API users
+        self.api_users_file = "api_users.pkl"
         
         # Load both authorized faces and API users
         self.load_authorized_faces()
@@ -73,18 +65,31 @@ class FaceRecognitionDoorLock:
         if not self.cap.isOpened():
             raise RuntimeError("Cannot open camera")
         
-        # TTS queue for threaded speech
-        self.tts_queue = []
-        self.tts_lock = threading.Lock()
-        if self.enable_tts:
-            self.start_tts_thread()
         self.enable_streaming = enable_streaming
         self.streaming_manager = StreamingManager(
-        api_base_url=api_base_url,
-        api_headers=api_headers,
-        enable_streaming=enable_streaming
-    )
-    
+            api_base_url=api_base_url,
+            api_headers=api_headers,
+            enable_streaming=enable_streaming
+        )
+
+    def speak(self, text, priority=False):
+        """Add text to speech queue using FliteTTS"""
+        if not self.enable_tts:
+            return
+            
+        if priority:
+            self.tts.speak(text, priority=True)
+        else:
+            self.tts.speak(text)
+
+    def speak_immediate(self, text):
+        """Speak text immediately (blocking)"""
+        if not self.enable_tts:
+            return
+            
+        self.tts.stop_current_speech()  # Stop any ongoing speech
+        self.tts.speak(text, priority=True)  # Will be processed immediately
+
     def start_system(self):
         """Start all system components including streaming"""
         # Start streaming service
@@ -92,44 +97,6 @@ class FaceRecognitionDoorLock:
         print("Face recognition system with streaming started")
         if self.enable_tts:
             self.speak("System started with streaming enabled", priority=True)
-
-    def speak(self, text, priority=False):
-        """Add text to TTS queue or speak immediately if priority"""
-        if not self.enable_tts:
-            return
-        
-        with self.tts_lock:
-            if priority:
-                # Clear queue and speak immediately
-                self.tts_queue.clear()
-                self.tts_queue.append(text)
-            else:
-                self.tts_queue.append(text)
-
-    def start_tts_thread(self):
-        """Start TTS thread for non-blocking speech"""
-        def tts_worker():
-            while True:
-                try:
-                    with self.tts_lock:
-                        if self.tts_queue:
-                            text = self.tts_queue.pop(0)
-                        else:
-                            text = None
-                    
-                    if text:
-                        print(f"🔊 Speaking: {text}")
-                        self.tts_engine.say(text)
-                        self.tts_engine.runAndWait()
-                    else:
-                        time.sleep(0.1)  # Short sleep when queue is empty
-                        
-                except Exception as e:
-                    print(f"TTS error: {e}")
-                    time.sleep(1)
-        
-        tts_thread = threading.Thread(target=tts_worker, daemon=True)
-        tts_thread.start()
 
     def sync_api_users(self):
         """Synchronize users from API with local authorized faces"""
@@ -520,17 +487,14 @@ class FaceRecognitionDoorLock:
         """Cleanup resources"""
         print("Cleaning up resources...")
         self.streaming_manager.stop_streaming()
-        self.speak("System shutting down", priority=True)
-        time.sleep(1)  # Give time for final TTS
+        
+        # Final shutdown announcement
+        if self.enable_tts:
+            self.tts.stop_current_speech()
+            self.tts.speak("System shutting down", priority=True)
+            time.sleep(1)  # Give time for speech to complete
         
         self.cap.release()
         if not self.headless:
             cv2.destroyAllWindows()
         self.face_processor.cleanup()
-        
-        if self.enable_tts:
-            try:
-                self.tts_engine.stop()
-            except:
-                pass
-
