@@ -6,24 +6,34 @@ import requests
 import base64
 import traceback
 from datetime import datetime
-from tts_manager import TTSManager
 from face_recognition import FaceRecognition
 from api_integration import APIIntegration
 from door_lock import DoorLock
 from live_streaming import StreamingIntegration
+from flite_tts import FliteTTS  # Import the FliteTTS class
 
 class FaceDoorLockSystem:
-    def __init__(self, api_base_url, api_key=None, tts_engine='pyttsx3', tts_language='fr', 
+    def __init__(self, api_base_url, api_key=None, tts_engine='flite', tts_language='en', 
                  streaming_port=8080, external_server_url=None, external_server_headers=None):
         try:
-            # Initialize components
-            self.tts = TTSManager(preferred_engine=tts_engine, language=tts_language)
+            # Initialize TTS based on selected engine
             self.tts_enabled = True
+            if tts_engine.lower() == 'flite':
+                self.tts = FliteTTS(
+                    voice='slt',  # Default voice
+                    speech_rate=170,  # Normal speech rate
+                    volume=0.8,  # 80% volume
+                    timeout=10  # 10 second timeout
+                )
+                if not self.tts.flite_available:
+                    print("Flite TTS not available - disabling TTS")
+                    self.tts_enabled = False
+            else:
+                print(f"Unsupported TTS engine: {tts_engine} - disabling TTS")
+                self.tts_enabled = False
             
             self.face_recognition = FaceRecognition()
-            
             self.api = APIIntegration(api_base_url, api_key)
-            
             self.door_lock = DoorLock()
             
             # Camera initialization with fallback
@@ -40,7 +50,7 @@ class FaceDoorLockSystem:
             self.instruction_given = False
             
             # Registration monitoring control
-            self.registration_check_interval = 10  # Check every 10 seconds instead of 5
+            self.registration_check_interval = 10  # Check every 10 seconds
             self.last_registration_check = 0
             self.registration_monitoring_active = True
             
@@ -65,13 +75,38 @@ class FaceDoorLockSystem:
             
             print("Face recognition door lock system initialized - Priority: Normal Mode")
             if self.tts_enabled:
-                self.tts.speak("Système de reconnaissance faciale initialisé. Mode normal prioritaire.")
+                self.speak("System initialized. Normal mode active.")
             
             if self.external_server_url:
                 print(f"Configured to POST data to external server: {self.external_server_url}")
                 
         except Exception as e:
+            print(f"Initialization error: {str(e)}")
             raise
+
+    def speak(self, text, priority=False):
+        """Speak text using the configured TTS engine"""
+        if not self.tts_enabled:
+            return
+            
+        try:
+            if priority:
+                self.tts.speak(text, priority=True)
+            else:
+                self.tts.speak(text)
+        except Exception as e:
+            print(f"TTS error: {str(e)}")
+
+    def speak_immediate(self, text):
+        """Speak text immediately (blocking)"""
+        if not self.tts_enabled:
+            return
+            
+        try:
+            self.tts.stop_current_speech()
+            self.tts.speak(text, priority=True)
+        except Exception as e:
+            print(f"TTS error: {str(e)}")
 
     def _initialize_camera(self):
         """Initialize camera with fallback options"""

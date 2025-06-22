@@ -145,3 +145,134 @@ RuntimeError: Cannot open camera
 2025-06-22 12:23:37,185 - INFO - Streaming service started
 2025-06-22 12:31:11,608 - INFO - Streaming service stopped
 2025-06-22 12:31:13,772 - INFO - System cleanup completed
+2025-06-22 12:38:28,040 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:38:28,912 - INFO - System components initialized successfully
+2025-06-22 12:38:29,667 - WARNING - API synchronization failed, using local database
+2025-06-22 12:38:29,668 - INFO - System startup completed successfully
+2025-06-22 12:38:29,669 - INFO - Streaming service started
+2025-06-22 12:39:01,759 - INFO - Streaming service stopped
+2025-06-22 12:39:03,912 - INFO - System cleanup completed
+2025-06-22 12:40:06,227 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:40:07,114 - INFO - System components initialized successfully
+2025-06-22 12:40:07,825 - WARNING - API synchronization failed, using local database
+2025-06-22 12:40:07,826 - INFO - System startup completed successfully
+2025-06-22 12:40:07,827 - INFO - Streaming service started
+2025-06-22 12:40:36,639 - WARNING - Timeout error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Read timed out. (read timeout=10.0)
+2025-06-22 12:40:37,661 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b45eb0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:38,672 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b0b320>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:38,793 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4e05d30>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:39,812 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b45010>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:40,816 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b44b90>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:40,819 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b093a0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:41,823 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b29670>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:42,826 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b0bfe0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:42,936 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b08f80>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:43,944 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b2a4e0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:44,948 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b2a4b0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:44,951 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b2b980>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:45,955 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b0a120>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:46,964 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b08b30>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:47,073 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b46d80>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:48,083 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b47290>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:49,089 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b44950>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:49,100 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b465d0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:50,105 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b48890>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:51,112 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b495e0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:51,225 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b29370>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:52,233 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b46120>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:53,237 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b29670>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:53,243 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4aeb8f0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:54,246 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b2b140>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:55,251 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b47b60>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:55,356 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b4a300>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:56,373 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b46bd0>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:57,381 - WARNING - Connection error (attempt 3): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b48c20>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:57,386 - WARNING - Connection error (attempt 1): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b29f10>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:40:58,393 - WARNING - Connection error (attempt 2): HTTPSConnectionPool(host='apps.mediabox.bi', port=26875): Max retries exceeded with url: /administration/streaming/receive_frame (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7785f4b29670>: Failed to resolve 'apps.mediabox.bi' ([Errno -3] Temporary failure in name resolution)"))
+2025-06-22 12:42:28,031 - INFO - Streaming service stopped
+2025-06-22 12:42:30,232 - INFO - System cleanup completed
+2025-06-22 12:42:53,349 - INFO - Headless mode: All output will be logged to file
+2025-06-22 12:42:53,455 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:42:54,322 - INFO - System components initialized successfully
+2025-06-22 12:42:55,020 - WARNING - API synchronization failed, using local database
+2025-06-22 12:42:55,020 - INFO - System startup completed successfully
+2025-06-22 12:42:55,021 - INFO - Streaming service started
+2025-06-22 12:43:52,160 - INFO - Streaming service stopped
+2025-06-22 12:43:54,311 - INFO - System cleanup completed
+2025-06-22 12:44:05,507 - INFO - Headless mode: All output will be logged to file
+2025-06-22 12:44:05,634 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:44:06,512 - INFO - System components initialized successfully
+2025-06-22 12:44:07,175 - WARNING - API synchronization failed, using local database
+2025-06-22 12:44:07,176 - INFO - System startup completed successfully
+2025-06-22 12:44:07,179 - INFO - Streaming service started
+2025-06-22 12:44:44,530 - INFO - Streaming service stopped
+2025-06-22 12:44:46,698 - INFO - System cleanup completed
+2025-06-22 12:44:50,764 - INFO - Headless mode: All output will be logged to file
+2025-06-22 12:44:50,867 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:44:51,763 - INFO - System components initialized successfully
+2025-06-22 12:44:52,434 - WARNING - API synchronization failed, using local database
+2025-06-22 12:44:52,436 - INFO - System startup completed successfully
+2025-06-22 12:44:52,437 - INFO - Streaming service started
+2025-06-22 12:45:09,837 - INFO - Streaming service stopped
+2025-06-22 12:45:11,997 - INFO - System cleanup completed
+2025-06-22 12:49:17,604 - INFO - Headless mode: All output will be logged to file
+2025-06-22 12:49:17,789 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:49:18,681 - INFO - System components initialized successfully
+2025-06-22 12:49:19,260 - WARNING - API synchronization failed, using local database
+2025-06-22 12:49:19,261 - INFO - System startup completed successfully
+2025-06-22 12:49:19,261 - INFO - Streaming service started
+2025-06-22 12:49:36,950 - WARNING - Connection error (attempt 1): ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2025-06-22 12:51:11,190 - INFO - Streaming service stopped
+2025-06-22 12:51:13,363 - INFO - System cleanup completed
+2025-06-22 12:51:54,739 - INFO - Headless mode: All output will be logged to file
+2025-06-22 12:51:54,844 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:51:55,723 - INFO - System components initialized successfully
+2025-06-22 12:51:56,375 - WARNING - API synchronization failed, using local database
+2025-06-22 12:51:56,376 - INFO - System startup completed successfully
+2025-06-22 12:51:56,378 - INFO - Streaming service started
+2025-06-22 12:52:12,647 - INFO - Streaming service stopped
+2025-06-22 12:52:14,820 - INFO - System cleanup completed
+2025-06-22 12:52:45,079 - INFO - Headless mode: All output will be logged to file
+2025-06-22 12:52:45,184 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:52:46,070 - INFO - System components initialized successfully
+2025-06-22 12:52:46,706 - WARNING - API synchronization failed, using local database
+2025-06-22 12:52:46,706 - INFO - System startup completed successfully
+2025-06-22 12:52:46,708 - INFO - Streaming service started
+2025-06-22 12:53:00,920 - INFO - Streaming service stopped
+2025-06-22 12:53:03,095 - INFO - System cleanup completed
+2025-06-22 12:54:10,374 - INFO - Headless mode: All output will be logged to file
+2025-06-22 12:54:10,481 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:54:11,341 - INFO - System components initialized successfully
+2025-06-22 12:54:12,048 - WARNING - API synchronization failed, using local database
+2025-06-22 12:54:12,049 - INFO - System startup completed successfully
+2025-06-22 12:54:12,050 - INFO - Streaming service started
+2025-06-22 12:54:24,436 - INFO - Streaming service stopped
+2025-06-22 12:54:26,583 - INFO - System cleanup completed
+2025-06-22 12:54:34,574 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 12:54:35,458 - INFO - System components initialized successfully
+2025-06-22 12:54:36,137 - WARNING - API synchronization failed, using local database
+2025-06-22 12:54:36,139 - INFO - System startup completed successfully
+2025-06-22 12:54:36,139 - INFO - Streaming service started
+2025-06-22 12:54:47,388 - INFO - Streaming service stopped
+2025-06-22 12:54:49,676 - INFO - System cleanup completed
+2025-06-22 13:04:27,381 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 13:04:28,271 - INFO - System components initialized successfully
+2025-06-22 13:04:29,100 - WARNING - API synchronization failed, using local database
+2025-06-22 13:04:29,101 - INFO - System startup completed successfully
+2025-06-22 13:04:29,102 - INFO - Streaming service started
+2025-06-22 13:05:28,369 - INFO - Streaming service stopped
+2025-06-22 13:05:30,555 - INFO - System cleanup completed
+2025-06-22 13:09:45,385 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 13:09:46,264 - INFO - System components initialized successfully
+2025-06-22 13:09:46,853 - WARNING - API synchronization failed, using local database
+2025-06-22 13:09:46,854 - INFO - System startup completed successfully
+2025-06-22 13:09:46,855 - INFO - Streaming service started
+2025-06-22 13:10:28,771 - INFO - Streaming service stopped
+2025-06-22 13:10:30,945 - INFO - System cleanup completed
+2025-06-22 13:12:52,451 - INFO - Configuration loaded - API: https://apps.mediabox.bi:26875
+2025-06-22 13:12:53,312 - INFO - System components initialized successfully
+2025-06-22 13:12:54,100 - WARNING - API synchronization failed, using local database
+2025-06-22 13:12:54,102 - INFO - System startup completed successfully
+2025-06-22 13:12:54,103 - INFO - Streaming service started
+2025-06-22 13:13:26,669 - INFO - Streaming service stopped
+2025-06-22 13:13:28,844 - INFO - System cleanup completed

@@ -60,6 +60,12 @@ class FaceRecognitionDoorLock:
         self.mode_check_interval = 10  # Check API every 10 seconds
         self.last_mode_check = 0
         
+        # ACCESS LOGGING CONTROL - NEW
+        self.last_access_log_time = 0
+        self.access_log_cooldown = 5  # Minimum seconds between access logs
+        self.door_locked = True  # Track door state
+        self.access_logged_for_current_session = False  # Track if we've logged for current recognition session
+        
         # Camera setup
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
@@ -198,6 +204,9 @@ class FaceRecognitionDoorLock:
                                 self.register_api_user(user_id)
                     self.last_mode_check = current_time
 
+                # Check if door should be locked again
+                self.check_door_lock_status(current_time)
+
                 ret, frame = self.cap.read()
                 if not ret:
                     continue
@@ -205,37 +214,60 @@ class FaceRecognitionDoorLock:
                 frame = cv2.flip(frame, 1)
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 
-                # Process frame for recognition
-                recognition_result = self.face_processor.process_frame_for_recognition(
-                    frame, rgb_frame, self.authorized_faces, self.recognition_threshold,
-                    consecutive_recognitions, recognition_threshold_count
-                )
-                
-                if recognition_result:
-                    person_name, similarity, bbox = recognition_result
-                    self.process_access_attempt(frame, person_name, similarity)
+                # Only process recognition if door is locked
+                if self.door_locked:
+                    # Process frame for recognition
+                    recognition_result = self.face_processor.process_frame_for_recognition(
+                        frame, rgb_frame, self.authorized_faces, self.recognition_threshold,
+                        consecutive_recognitions, recognition_threshold_count
+                    )
                     
-                    if person_name:
-                        # Check if should unlock
-                        if consecutive_recognitions[person_name] >= recognition_threshold_count:
-                            if self.unlock_door(person_name):
-                                if not self.headless:
-                                    cv2.putText(frame, f"UNLOCKED: {person_name}", 
-                                              (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
-                                              0.8, (0, 255, 0), 2)
-                            else:
-                                if not self.headless:
-                                    cv2.putText(frame, f"DOOR OPEN: {person_name}", 
-                                              (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
-                                              0.8, (0, 255, 255), 2)
+                    if recognition_result:
+                        person_name, similarity, bbox = recognition_result
+                        
+                        # Only process access attempt if we haven't logged for this session
+                        if not self.access_logged_for_current_session:
+                            self.process_access_attempt(frame, person_name, similarity)
+                            self.access_logged_for_current_session = True
+                        
+                        if person_name:
+                            # Check if should unlock
+                            if consecutive_recognitions[person_name] >= recognition_threshold_count:
+                                if self.unlock_door(person_name):
+                                    if not self.headless:
+                                        cv2.putText(frame, f"UNLOCKED: {person_name}", 
+                                                  (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
+                                                  0.8, (0, 255, 0), 2)
+                                else:
+                                    if not self.headless:
+                                        cv2.putText(frame, f"DOOR OPEN: {person_name}", 
+                                                  (bbox[0], bbox[1] - 40), cv2.FONT_HERSHEY_SIMPLEX, 
+                                                  0.8, (0, 255, 255), 2)
+                    else:
+                        # No face detected - reset the access logged flag after a delay
+                        if self.access_logged_for_current_session:
+                            # Reset after 2 seconds of no detection
+                            if current_time - self.last_access_log_time > 2:
+                                self.access_logged_for_current_session = False
+                else:
+                    # Door is unlocked - don't process recognition, just show status
+                    if not self.headless:
+                        cv2.putText(frame, "DOOR UNLOCKED - Recognition Paused", 
+                                  (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
+                    
+                    # Clear consecutive recognitions while door is unlocked
+                    consecutive_recognitions.clear()
                 
                 # Display system info (only if not headless)
                 if not self.headless:
                     streaming_status = self.streaming_manager.get_streaming_status()
+                    door_status = "LOCKED" if self.door_locked else "UNLOCKED"
                     cv2.putText(frame, f"Authorized Users: {len(self.authorized_faces)}", 
                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                     cv2.putText(frame, f"API Users: {len(self.api_users)}", 
                               (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    cv2.putText(frame, f"Door Status: {door_status}", 
+                              (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0) if self.door_locked else (0, 0, 255), 2)
                     cv2.putText(frame, "Face Recognition Door Lock", 
                               (10, frame.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                     
@@ -252,6 +284,15 @@ class FaceRecognitionDoorLock:
             print("\nSystem stopped by user")
             self.speak("System shutting down.", priority=True)
             time.sleep(2)  # Give time for TTS to finish
+
+    def check_door_lock_status(self, current_time):
+        """Check if door should be locked again and reset access log status"""
+        if not self.door_locked and current_time - self.last_unlock_time > self.unlock_duration:
+            self.door_locked = True
+            print("🔒 Door locked again - Recognition system reactivated")
+            self.speak("Door locked. System ready for next user.")
+            # Reset access log status when door locks
+            self.access_logged_for_current_session = False
 
     def register_api_user(self, user_id):
         """Register face for a specific API user"""
@@ -278,8 +319,8 @@ class FaceRecognitionDoorLock:
         
         face_samples = []
         sample_count = 0
-        required_samples = 5
-        auto_capture_delay = 1.0  # seconds between auto captures in headless mode
+        required_samples = 20
+        auto_capture_delay = 3.0  # seconds between auto captures in headless mode
         last_capture_time = 0
         
         while sample_count < required_samples:
@@ -368,7 +409,14 @@ class FaceRecognitionDoorLock:
         return False
 
     def process_access_attempt(self, frame, person_name, similarity):
-        """Handle access attempt logging with proper user ID conversion"""
+        """Handle access attempt logging with proper user ID conversion - ONLY ONCE PER SESSION"""
+        current_time = time.time()
+        
+        # Check if enough time has passed since last access log
+        if current_time - self.last_access_log_time < self.access_log_cooldown:
+            print(f"Access log cooldown active. Skipping log entry.")
+            return False
+        
         status = 1 if person_name else 2  # 1 for recognized, 2 for unrecognized
         
         # Determine user ID
@@ -411,6 +459,11 @@ class FaceRecognitionDoorLock:
         # Only log if we have a valid user ID or it's an unrecognized attempt
         if log_user_id is not None:
             print(f"Logging access attempt - User ID: {log_user_id}, Status: {status}")
+            
+            # Update last access log time
+            self.last_access_log_time = current_time
+            
+            # Send the access log
             return self.api_handler.log_access(log_user_id, frame, status)
         else:
             print("Skipping access log due to invalid user ID")
@@ -428,6 +481,7 @@ class FaceRecognitionDoorLock:
         current_time = time.time()
         if current_time - self.last_unlock_time > self.unlock_duration:
             self.last_unlock_time = current_time
+            self.door_locked = False  # Mark door as unlocked
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(f"🔓 DOOR UNLOCKED for {person_name} at {timestamp}")
             self.speak(f"Welcome {person_name}. Door unlocked.", priority=True)
